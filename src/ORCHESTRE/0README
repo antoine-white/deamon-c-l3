@@ -1,0 +1,14 @@
+Le fichier "orchestre.c" contient le code de l'orchestre
+
+L'orchestre se lance à partir du répertoire racine du projet
+
+Les fichiers "client_orchestre.h" et "client_orchestre.c" contiennent
+les routines de communication entre l'orchestre et les clients (tubes
+nommés et sémaphore).
+
+Les fichiers "service_orchestre.h" et "service_orchestre.c" contiennent
+les routines de communication entre l'orchestre et les services (tubes
+anonymes et sémaphores).
+
+Les fichiers de communication entre un service et un client sont dans
+le répertoire des services.

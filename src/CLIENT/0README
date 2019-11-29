@@ -1,0 +1,16 @@
+Les clients se lancent à partir du répertoire racine du projet.
+
+Les fichiers "client_service.h" et "client_service.c" contiennent
+les routines de communications entre un service et et un client (tubes
+nommés). Ces fichiers ne sont pas dans ce répertoire, mais dans
+le répertoire de gestion des services.
+
+Il y a un seul exécutable client qui est capable de gérer la
+communication avec n'importe quel service.
+
+Mais il y a, dans ce répertoire, une paire de fichiers par service.
+Ces fichiers contiennent :
+- les deux fonctions utilisées par le client (cf. client.c)
+Par exemple les fichiers gérant la somme de deux nombres pourraient
+s'appeler "client_somme.h" et "client_somme.c"
+

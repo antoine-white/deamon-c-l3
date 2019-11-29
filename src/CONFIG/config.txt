@@ -1,0 +1,6 @@
+3
+ouvert SERVICES/service_somme
+ferme SERVICES/service_compression
+ouvert SERVICES/service_max
+
+# A partir de la ligne 5, les informations sont ignorées.

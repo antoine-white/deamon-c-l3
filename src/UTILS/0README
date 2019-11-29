@@ -1,0 +1,7 @@
+Ici, éventuellement, du code à utilité générale, i.e. non
+dédié à une partie spécifiche au projet.
+
+Il y a pour l'instant myassert.h et myassert.c.
+
+Si vous rajouter des fichiers, il faudra certainement modifier
+les différents scripts "compile.sh"

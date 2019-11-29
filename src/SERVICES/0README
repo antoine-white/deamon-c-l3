@@ -1,0 +1,18 @@
+Les services sont lancés par l'orchestre
+
+Les fichiers "client_service.h" et "client_service.c" contiennent
+les routines de communication entre les clients et les services
+(tubes nommés).
+
+Il y a un fichier "service_..." par service.
+Par exemple le fichier gérant la somme de deux nombres pourraient
+s'appeler "service_somme.c"
+
+Note : les main de chaque fichier service_....c seront quasi identiques.
+On peut laisser cette duplication de code pour ce projet.
+
+Un programme service prend en ligne de commande les paramètres suivants :
+- la clé du sémaphore pour synchroniser le service avec l'orchestre
+- le "file descriptor du tube anonyme" orchestre vers service
+- le nom du tube nommé pour la communication service vers client
+- le nom du tube nommé pour la communication client vers service
