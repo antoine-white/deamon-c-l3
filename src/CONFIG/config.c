@@ -17,16 +17,15 @@
  */
 
 
-// TODO include des .h système
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <string.h>
 #include "myassert.h"
 
 #include "config.h"
 
-// TODO Structure de données ici
+// Structure de données 
 typedef struct file_config file_config;
 struct file_config
 {
@@ -40,9 +39,26 @@ static void assertFileOpen(){
     myassert(config.isOpen,"operation impossible le fichier de configuration sans avoir appele config_init");
 }
 
+//We don't have to worry about str being shorter than pre because according to the C standard (7.21.4.4/2):
+//The strncmp function compares not more than n characters (characters that follow a null character are not compared) from the array pointed to by s1 to the array pointed to by s2."
+//sources : https://stackoverflow.com/questions/4770985/how-to-check-if-a-string-starts-with-another-string-in-c
+static bool startsWith(const char *pre, const char *str)
+{
+    return strncmp(pre, str, strlen(pre)) == 0;
+}
+
+// trouve la position après un ' ' dans une chaine de caractère
+static int posBeginExecName(const char* str)
+{
+    int pos = 0;
+    while(str[pos] != ' ')
+        pos++;
+    return pos;
+}
+
 void config_init(const char *filename)
 {
-    // TODO erreur si la fonction est appelée deux fois
+    //erreur si la fonction est appelée deux fois
     myassert( ! config.isOpen,"config_init appele une deuxieme fois sans avoir appele config_exit");
     
     config.isOpen = true;
@@ -52,7 +68,7 @@ void config_init(const char *filename)
 
 void config_exit()
 {
-    // TODO erreur si la fonction est appelée avant config_init
+    //erreur si la fonction est appelée avant config_init
     myassert(config.isOpen,"config_exit appele sans avoir appele config_init");
 
     myassert(fclose(config.fp) == 0,"erreur dans la fermeture du fichier");
@@ -70,46 +86,47 @@ int config_getNbServices()
 
 bool config_isServiceOpen(int pos)
 {
-    // TODO erreur si la fonction est appelée avant config_init
-    // TODO erreur si la fonction est appelée après config_exit
+    // erreur si la fonction est appelée avant config_init ou si la fonction est appelée après config_exit
     assertFileOpen();
-    // TODO erreur si "pos" est incorrect
     const int nbServiceOpen = config_getNbServices();
+    // erreur si "pos" est incorrect
     myassert(pos <= nbServiceOpen,"Le service demande a un indice superieur a l'indice du service maximal");
-    // TODO code par défaut, à remplacer
+    // chaine de caractère représentant ouvert
     const char open[7] = "ouvert";
-    char line[256];//buffer large 
-    for(int i = 0; i < pos; i++)
+    char line[256];//large buffer
+    for(int i = 0; i <= pos; i++)
     {
-        fgets(line, sizeof(line), file);
-        
-        open[i] = startsWith(open,line);
+        // on passe les lignes jusqu'a arriver à la ligne qui nous interresse
+        fgets(line, sizeof(line), config.fp);
     }
-    return open[pos-1];
+    // on retourne si la ligne commence par la chaine contenue dans open
+    return startsWith(open,line);
 }
+
 
 const char * config_getExeName(int pos)
 {
-    // TODO erreur si la fonction est appelée avant config_init
-    // TODO erreur si la fonction est appelée après config_exit
-    // TODO erreur si "pos" est incorrect
+    // erreur si la fonction est appelée avant config_init ou si la fonction est appelée après config_exit
     assertFileOpen();
-    // TODO code par défaut, à remplacer
-    const char * names[] = {
-        "SERVICES/service_somme",
-        "SERVICES/service_compression",
-        "SERVICES/service_max"
-    };
-    return names[pos-1];
+    
+    const int nbServiceOpen = config_getNbServices();
+    // erreur si "pos" est incorrect
+    myassert(pos <= nbServiceOpen,"Le service demande a un indice superieur a l'indice du service maximal");
+    char line[256];//large buffer
+    for(int i = 0; i < pos; i++)
+    {
+        fgets(line, sizeof(line), config.fp);//passe une ligne
+    }
+    fgets(line, sizeof(line), config.fp); 
+    // on écrit sur le dernier caractère qui est un '\n'
+    line[strlen(line)-1] = '\0'; 
+    int startPos = posBeginExecName(line); // on trouve la position après un ' ' dans la chaine de caractère
+    char* returnStr = (char *)malloc(sizeof(char)*(strlen(line) + 1));
+    // on prend la sous chaîne de caractère qui va de la position startPos à la fin
+    memcpy(returnStr,&(line[startPos+1]),strlen(line)-pos); 
+    return returnStr;
 }
 
-//We don't have to worry about str being shorter than pre because according to the C standard (7.21.4.4/2):
-//The strncmp function compares not more than n characters (characters that follow a null character are not compared) from the array pointed to by s1 to the array pointed to by s2."
-//sources : https://stackoverflow.com/questions/4770985/how-to-check-if-a-string-starts-with-another-string-in-c
-static bool startsWith(const char *pre, const char *str)
-{
-    return strncmp(pre, str, strlen(pre)) == 0;
-}
 
 
 
