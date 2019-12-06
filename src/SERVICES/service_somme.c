@@ -24,6 +24,7 @@ static void usage(const char *exeName, const char *message)
 // fonction de réception des données
 void somme_service_receiveDataData(/* tubes,*/ /* autre chose ? */)
 {
+    
 }
 
 // fonction de traitement des données
