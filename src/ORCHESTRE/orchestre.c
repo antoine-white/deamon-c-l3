@@ -1,11 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include "config.h"
 #include "client_orchestre.h"
 #include "service_orchestre.h"
 
+
+
+struct Service{
+    char* name;// buffer trop grand pour le moment
+    bool isOpen;
+};
+
+typedef struct Service Service;
 
 static void usage(const char *exeName, const char *message)
 {
@@ -20,8 +29,25 @@ int main(int argc, char * argv[])
     if (argc != 2)
         usage(argv[0], "nombre paramètres incorrect");
 
-    // lecture du fichier de configuration
-
+    // TODO lecture du fichier de configuration
+    const char* configPath = argv[1]; 
+    // on ouvre l'API de lecture du fichier config
+    config_init(configPath);
+    int nbService = config_getNbServices();
+    Service* services = (struct Service *)malloc(sizeof(struct Service)*nbService);
+    for(int i = 0; i < nbService;i++)
+    {
+        services[i].isOpen = config_isServiceOpen(i+1);
+        services[i].name = malloc(sizeof(char) * strlen(config_getExeName(i+1)));
+        strcpy(services[i].name,config_getExeName(i+1));
+    }
+    for(int i = 0; i < nbService;i++)
+    {
+        printf("%s => %d\n",services[i].name,services[i].isOpen);
+    }
+    // on ferme l'API
+    config_exit();
+    
     // Pour la communication avec les clients
     // - création de 2 tubes nommés pour converser avec les clients
     // - création d'un sémaphore pour que deux clients ne
