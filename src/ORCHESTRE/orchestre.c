@@ -108,7 +108,6 @@ static void lauchServices(int nbService, Service* services)
             myassert(false,"erreur exec");// si le exevcp n'a pas marché
         }    
         // on ne fait rien sur le père
-    
     }  
 }
 
@@ -131,14 +130,22 @@ int main(int argc, char * argv[])
     
     // Pour la communication avec les clients
     // - création de 2 tubes nommés pour converser avec les clients  
+    
+    /*
     char* fifoClient1 = "client1"; 
     char* fifoClient2 = "client2"; 
     myassert(mkfifo(fifoClient1, 0666) != -1,"erreur creation de tube nomme");
-    myassert(mkfifo(fifoClient2, 0666) != -1,"erreur creation de tube nomme"); 
+    myassert(mkfifo(fifoClient2, 0666) != -1,"erreur creation de tube nomme"); */
+    Descriptors pipes;
+        
+    o_c_createPipes(&pipes);
     // - création d'un sémaphore pour que deux clients ne
     //   ne communiquent pas en même temps avec l'orchestre
+    
+    /*
     int semClient = semget(IPC_PRIVATE,1,0666);
-    myassert(semClient != -1,"erreur création de semaphore");
+    myassert(semClient != -1,"erreur création de semaphore");*/
+    int sem = sem_init(); 
     
     
     // lancement des services, avec pour chaque service :
@@ -200,3 +207,4 @@ int main(int argc, char * argv[])
     
     return EXIT_SUCCESS;
 }
+
