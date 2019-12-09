@@ -1,7 +1,16 @@
 #include "myassert.h"
 
 #include "client_orchestre.h"
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h> 
+#include <sys/stat.h> 
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
 
 
 
@@ -10,9 +19,9 @@ static void createPipe(const char *name, OnePipe *onePipe)
 {
     int nameLength;
 
-    nameLength = snprintf(NULL, 0, "%s", basename);
+    nameLength = snprintf(NULL, 0, "%s",name);
     onePipe->name = malloc((nameLength + 1) * sizeof(char));
-    sprintf(onePipe->name, "%s", basename);
+    sprintf(onePipe->name, "%s",name);
     onePipe->fd = -1;
 
     int ret = mkfifo(onePipe->name, 0600);
@@ -20,14 +29,14 @@ static void createPipe(const char *name, OnePipe *onePipe)
 
 void o_c_createPipes(Descriptors *pipes)
 {
-    createPipe("pipeOrchestreToClient",O_WRONLY,&(pipes->OtoC));
-    createPipe("pipeClientToOrchestre",O_RDONLY,&(pipes->CtoO));
+    createPipe("pipeOrchestreToClient",&(pipes->OtoC));
+    createPipe("pipeClientToOrchestre",&(pipes->CtoO));
 }
 
 void c_o_createPipes(Descriptors *pipes)
 {
-    createPipe("pipeOrchestreToClient",O_WRONLY,&(pipes->OtoC));
-    createPipe("pipeClientToOrchestre",O_RDONLY,&(pipes->CtoO));
+    createPipe("pipeOrchestreToClient",&(pipes->OtoC));
+    createPipe("pipeClientToOrchestre",&(pipes->CtoO));
 }
 
 
@@ -43,8 +52,8 @@ static void destroyPipe(OnePipe *onePipe)
 
 void o_destroyPipes(Descriptors *pipes)
 {
-    destroyPipe("destruction tube OtoC", &(pipes->OtoC));
-    destroyPipe("destruction tube CtoO", &(pipes->CtoO));
+    destroyPipe(&(pipes->OtoC));
+    destroyPipe(&(pipes->CtoO));
 }
 
 
@@ -61,18 +70,14 @@ static void openPipe(const char *name, int flag,OnePipe *onePipe)
 
 void c_openPipes(const char *nameCtoO, const char *nameOtoC, Descriptors *pipes)
 {
-    openPipe(nameCtoO, O_WRONLY,
-             "client ouverture tube CtoO", &(pipes->CtoO));
-    openPipe(nameWtoM, O_RDONLY,
-             "orchestre ouverture tube OtoC", &(pipes->OtoC));
+    openPipe(nameCtoO, O_WRONLY, &(pipes->CtoO));
+    openPipe(nameOtoC, O_RDONLY,&(pipes->OtoC));
 }
 
 void o_openPipes(const char *nameCtoO, const char *nameOtoC, Descriptors *pipes)
 {
-    openPipe(nameCtoO, O_RDONLY,
-             "client ouverture tube CtoO", &(pipes->CtoO));
-    openPipe(nameOtoC, O_WRONLY,
-             "orchestre ouverture tube OtoC", &(pipes->OtoC));
+    openPipe(nameCtoO, O_RDONLY,&(pipes->CtoO));
+    openPipe(nameOtoC, O_WRONLY,&(pipes->OtoC));
 }
 
 static void closePipe(OnePipe *onePipe)
@@ -88,13 +93,13 @@ static void closePipe(OnePipe *onePipe)
 
 void c_closePipes(Descriptors *pipes)
 {
-    closePipe("client fermeture tube CtoO", &(pipes->CtoO));
-    closePipe("client fermeture tube OtoC", &(pipes->OtoC));
+    closePipe(&(pipes->CtoO));
+    closePipe(&(pipes->OtoC));
 }
 
 void o_closePipes(Descriptors *pipes)
 {
-    closePipe("orchestre fermeture tube OtoC", &(pipes->OtoC));
-    closePipe("orchestre fermeture tube CtoO", &(pipes->CtoO));
+    closePipe(&(pipes->OtoC));
+    closePipe(&(pipes->CtoO));
 }
 
