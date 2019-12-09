@@ -55,6 +55,14 @@ void o_openPipes(const char *nameCtoO, const char *nameOtoC, Descriptors *pipes)
 void c_closePipes(Descriptors *pipes);
 void o_closePipes(Descriptors *pipes);
 
+/*
+* création et destruction des sémaphores 
+*/
+
+int sem_init(); 
+void sem_destroy(int sem); 
+int sem_prendre(int sem); 
+int sem_vendre(int sem); 
 
 
 

@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 200809L    // pour strdup
+
 #include "myassert.h"
 
 #include "client_orchestre.h"
@@ -76,7 +78,7 @@ void c_openPipes(const char *nameCtoO, const char *nameOtoC, Descriptors *pipes)
 
 void o_openPipes(const char *nameCtoO, const char *nameOtoC, Descriptors *pipes)
 {
-    openPipe(nameCtoO, O_RDONLY,&(pipes->CtoO));
+    openPipe(nameCtoO, O_RDONLY,&(pipes->CtoO)); 
     openPipe(nameOtoC, O_WRONLY,&(pipes->OtoC));
 }
 
@@ -101,5 +103,43 @@ void o_closePipes(Descriptors *pipes)
 {
     closePipe(&(pipes->OtoC));
     closePipe(&(pipes->CtoO));
+}
+
+
+
+
+
+int sem_init(){
+	int semClient = semget(IPC_PRIVATE,1,0666);
+    myassert(semClient != -1,"erreur création de semaphore");
+    semctl(semClient,0,IPC_SET,0); 
+    return semClient; 
+}
+
+
+void sem_destroy(int sem){
+	semctl(sem,-1,IPC_RMID); 
+} 
+int sem_prendre(int sem){
+	struct sembuf sops[1];
+    
+    sops[0].sem_num = 0;       
+    sops[0].sem_op = +1;         
+    sops[0].sem_flg = 0;
+
+   	 semop(sem,sops,1);
+   	 return sem; 
+
+}
+int sem_vendre(int sem){
+	struct sembuf sops[1];
+    
+    sops[0].sem_num = 0;       
+    sops[0].sem_op = -1;         
+    sops[0].sem_flg = 0;
+
+   	 semop(sem,sops,1);
+    return sem; 
+
 }
 
