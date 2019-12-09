@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
+#include <unistd.h> 
+#include <sys/wait.h>
+#include <sys/types.h>
+#include <fcntl.h>
 
 #include "service_orchestre.h"
 #include "client_service.h"
@@ -47,10 +52,29 @@ int main(int argc, char * argv[])
         usage(argv[0], "nombre paramètres incorrect");
 
     // initialisations diverses
-
+    printf("%s ; %s ;%s ;%s",argv[1],argv[2],argv[3],argv[4]);
+    
+    char * splittedStr;
+    splittedStr = strtok(argv[2]," ,.-");
+    int i = 0, pipefd[2];
+    
+    while (splittedStr != NULL)
+    {
+        pipefd[i] = atoi(splittedStr);
+        splittedStr = strtok (NULL, " ,.-");
+        i++;
+    }
+    //printf("%d %d\n",pipefd[0],pipefd[1]);
+    close(pipefd[1]);
     while (true)
     {
+        
         // attente d'un code de l'orchestre (via tube anonyme)
+        int code;
+        read(pipefd[0],&code,sizeof(int));  
+        printf("code =>%d \n",code);
+        close(pipefd[0]);
+        break;
         // si code de fin
         //    sortie de la boucle
         // sinon

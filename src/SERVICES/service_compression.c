@@ -5,7 +5,7 @@
 static void usage(const char *exeName, const char *message)
 {
     fprintf(stderr, "usage : %s <clé_sémaphore> <fd_tube_anonyme> "
-            "<tube_service_vers_client> <tube_client_vers_ service>\n",
+            "<tube_service_vers_client> <tube_client_vers_service>\n",
             exeName);
     if (message != NULL)
         fprintf(stderr, "message : %s\n", message);
@@ -42,7 +42,7 @@ int main(int argc, char * argv[])
         usage(argv[0], "nombre paramètres incorrect");
 
     // initialisations diverses
-
+    printf("%s , %s\n",argv[1],argv[2]);
     while (true)
     {
         // attente d'un code de l'orchestre (via tube anonyme)
