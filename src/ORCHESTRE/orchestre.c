@@ -93,13 +93,12 @@ static void lauchServices(int nbService, Service* services)
             myassert(mkfifo(services[i].serviceToClient, 0666) != -1,"erreur creation de tube nomme");
             myassert(mkfifo(services[i].clientToService, 0666) != -1,"erreur creation de tube nomme"); 
             args[3] = services[i].serviceToClient;            
-            args[4] = services[i].clientToService;          
-            
+            args[4] = services[i].clientToService;
             args[5] = NULL;                 
             
             int length = strlen(services[i].name);
             char* execPath = (char *) malloc(sizeof(char) * (length + 4)); //4 pour  "../" et '\0'
-            strcpy(execPath,"../");
+            strcpy(execPath,"./");
             strcat(execPath,services[i].name);
             execPath[length + 3] = '\0';
             printf("%s, [%s,%s]\n\n",execPath,args[1],args[2]);   
@@ -137,8 +136,16 @@ int main(int argc, char * argv[])
     myassert(mkfifo(fifoClient1, 0666) != -1,"erreur creation de tube nomme");
     myassert(mkfifo(fifoClient2, 0666) != -1,"erreur creation de tube nomme"); */
     Descriptors pipes;
-        
-    o_c_createPipes(&pipes);
+         printf("Je crée le Pipe\n"); fflush(stdout); 
+   o_c_createPipes(&pipes);
+    	 printf("Je l'ouvre et attend \n"); fflush(stdout); 
+    o_openPipes(&pipes);
+    	 printf("yoooo 3\n"); fflush(stdout); 
+    o_readData(&pipes,&nbService,sizeof(int)); 
+    	 printf("yoooo 4\n"); fflush(stdout); 
+    o_closePipes(&pipes); 
+    
+    
     // - création d'un sémaphore pour que deux clients ne
     //   ne communiquent pas en même temps avec l'orchestre
     
@@ -163,16 +170,17 @@ int main(int argc, char * argv[])
     }
     unlink(fifoClient1); 
     unlink(fifoClient2); */
+    sleep(4);
     while (true)
     {
         int code = 10;
         write(services[0].pipefd[1], &code, sizeof(int)); 
         write(services[1].pipefd[1], &code, sizeof(int)); 
         write(services[2].pipefd[1], &code, sizeof(int)); 
-        break;
-        /*close(services[0].pipefd[1]);
+        close(services[0].pipefd[1]);
         close(services[1].pipefd[1]);
-        close(services[2].pipefd[1]);*/
+        close(services[2].pipefd[1]);
+        break; 
         // attente d'une demande de service du client
         
         // détecter la fin des traitements lancés précédemment via

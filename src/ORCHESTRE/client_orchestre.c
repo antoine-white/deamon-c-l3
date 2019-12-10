@@ -1,4 +1,5 @@
 #define _POSIX_C_SOURCE 200809L    // pour strdup
+#define _GNU_SOURCE  // eviter un warning 
 
 #include "myassert.h"
 
@@ -25,7 +26,7 @@ static void createPipe(const char *name, OnePipe *onePipe)
     onePipe->name = malloc((nameLength + 1) * sizeof(char));
     sprintf(onePipe->name, "%s",name);
     onePipe->fd = -1;
-
+    
     int ret = mkfifo(onePipe->name, 0600);
 }
 
@@ -70,16 +71,16 @@ static void openPipe(const char *name, int flag,OnePipe *onePipe)
     myassert(onePipe->fd != -1, "echec open pipes ");
 }
 
-void c_openPipes(const char *nameCtoO, const char *nameOtoC, Descriptors *pipes)
+void c_openPipes(Descriptors *pipes)
 {
-    openPipe(nameCtoO, O_WRONLY, &(pipes->CtoO));
-    openPipe(nameOtoC, O_RDONLY,&(pipes->OtoC));
+    openPipe(pipes->CtoO.name, O_WRONLY, &(pipes->CtoO));
+    openPipe(pipes->OtoC.name, O_RDONLY,&(pipes->OtoC));
 }
 
-void o_openPipes(const char *nameCtoO, const char *nameOtoC, Descriptors *pipes)
+void o_openPipes(Descriptors *pipes)
 {
-    openPipe(nameCtoO, O_RDONLY,&(pipes->CtoO)); 
-    openPipe(nameOtoC, O_WRONLY,&(pipes->OtoC));
+    openPipe(pipes->CtoO.name, O_RDONLY,&(pipes->CtoO)); 
+    openPipe(pipes->OtoC.name, O_WRONLY,&(pipes->OtoC));
 }
 
 static void closePipe(OnePipe *onePipe)
@@ -106,8 +107,48 @@ void o_closePipes(Descriptors *pipes)
 }
 
 
+/*
+ * surcharge des envois et réceptions (pour gérer les erreurs)
+ */
+ 
+static void writeData(OnePipe *onePipe, const void *buf, int size)
+{
+    ssize_t ret = write(onePipe->fd, buf, size);
+    myassert(ret != -1,"echec écriture de données");
+    myassert((size_t)ret == size,"echec écriture de données");
+}
+
+void o_writeData(Descriptors *pipes, const void *buf,int size)
+{
+    writeData(&(pipes->OtoC), buf, size);
+}
+
+void c_writeData(Descriptors *pipes, const void *buf, int size)
+{
+    writeData(&(pipes->CtoO), buf, size);
+}
+
+static void readData(OnePipe *onePipe, void *buf,int size)
+{
+    ssize_t ret = read(onePipe->fd, buf, size);
+    myassert(ret != -1,"echec lecture de données");
+    //myassert((size_t)ret == size, "echec lecture de données");
+}
+
+void o_readData(Descriptors *pipes, void *buf, int size)
+{
+    readData(&(pipes->CtoO), buf, size);
+}
+
+void c_readData(Descriptors *pipes, void *buf, int size)
+{
+    readData(&(pipes->OtoC), buf, size);
+}
 
 
+/*
+* Sémaphores 
+*/
 
 int sem_init(){
 	int semClient = semget(IPC_PRIVATE,1,0666);
@@ -120,6 +161,8 @@ int sem_init(){
 void sem_destroy(int sem){
 	semctl(sem,-1,IPC_RMID); 
 } 
+
+
 int sem_prendre(int sem){
 	struct sembuf sops[1];
     

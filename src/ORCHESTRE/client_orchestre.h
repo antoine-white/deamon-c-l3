@@ -49,11 +49,20 @@ void o_destroyPipes(Descriptors *pipes);
 /*
  * ouverture et fermeture des tubes
  */
-void c_openPipes(const char *nameCtoO, const char *nameOtoC, Descriptors *pipes);
-void o_openPipes(const char *nameCtoO, const char *nameOtoC, Descriptors *pipes);
+void c_openPipes(Descriptors *pipes);
+void o_openPipes(Descriptors *pipes);
 
 void c_closePipes(Descriptors *pipes);
 void o_closePipes(Descriptors *pipes);
+
+
+/*
+ * surcharge des envois et réceptions (pour gérer les erreurs)
+ */
+void o_writeData(Descriptors *pipes, const void *buf, int size);
+void c_writeData(Descriptors *pipes, const void *buf,int size);
+void o_readData(Descriptors *pipes, void *buf, int size);
+void c_readData(Descriptors *pipes, void *buf, int size);
 
 /*
 * création et destruction des sémaphores 
