@@ -15,11 +15,12 @@
 #include "client_service.h"
 
 struct data{
-    int a;
-    int b;
+    float a;
+    float b;
+    float res;
 };
 
-typedef struct data Data
+typedef struct data Data;
 
 static void usage(const char *exeName, const char *message)
 {
@@ -37,20 +38,22 @@ static void usage(const char *exeName, const char *message)
  *----------------------------------------------*/
 
 // fonction de réception des données
-void somme_service_receiveDataData(int fifoFd)
+void somme_service_receiveDataData(int fifoFd, Data* d)
 {
-    
+    read(fifoFd,&(d->a),sizeof(float));
+    read(fifoFd,&(d->b),sizeof(float));
 }
 
 // fonction de traitement des données
-void somme_service_computeResult(/* autre chose ? */)
+void somme_service_computeResult(Data d)
 {
-
+    d.res = d.a + d.b;
 }
 
 // fonction d'envoi du résultat
-void somme_service_sendResult(/* tubes,*/ /* autre chose ? */)
+void somme_service_sendResult(int fifoFd, Data d)
 {
+    write(fifoFd,&(d.res),sizeof(float));
 }
 
 
@@ -62,9 +65,10 @@ int main(int argc, char * argv[])
     if (argc != 5)
         usage(argv[0], "nombre paramètres incorrect");
 
-    // initialisations diverses
-    printf("%s ; %s ;%s ;%s",argv[1],argv[2],argv[3],argv[4]);
+    // TEMP:
+    printf("%s ; %s ;%s ;%s\n",argv[1],argv[2],argv[3],argv[4]);
     
+    // initialisations diverses
     // la clé du séaphore 
     key_t semKey = (key_t) atoi(argv[1]);
     
@@ -87,34 +91,41 @@ int main(int argc, char * argv[])
     int cTos = atoi(argv[4]);
     
     const int endCode = -1;
-    
+    const int newClient = 1;
     while (true)
-    {
-        
+    {        
         // attente d'un code de l'orchestre (via tube anonyme)
         int code;
         read(pipefd[0],&code,sizeof(int));  
-        printf("code =>%d \n",code);
+        printf("code => %d \n",code);
+        
         // si code de fin
         //    sortie de la boucle
         if(endCode == code)
         {
             break;
         }        
-        else
+        else if(code == newClient)
         {
+            read(pipefd[0],&code,sizeof(int));  
+            printf("code => %d \n",code);
             // réception du mot de passe de l'orchestre
             const int password = code;
             //    attente du mot de passe du client
             if(getPwdFromClient(cTos) == password)
             {
+                Data* d = NULL;
                 //envoi au client d'un code d'acceptation
                 sendOkPwd(sToc);
                 //réception des données du client (une fct par service)
+                somme_service_receiveDataData(cTos,d);
                 //calcul du résultat (une fct par service)
+                somme_service_computeResult(*d);
                 //envoi du résultat au client (une fct par service)
+                somme_service_sendResult(sToc,*d);
                 //attente de l'accusé de réception du client
-                //modification du sémaphore pour prévenir l'orchestre de la fin
+                clientAcknowledges(cTos);// on utilise pas le résultat pour l'instant  
+                // TODO :modification du sémaphore pour prévenir l'orchestre de la fin
             }
             // si mot de passe incorrect
             // envoi au client d'un code d'erreur
@@ -124,15 +135,10 @@ int main(int argc, char * argv[])
             }
             
         }
-        
-        
-        //    si mot de passe incorrect
-        //        envoi au client d'un code d'erreur
-        //    sinon
        
     }
 
-    // libération éventuelle de ressources
+    // TODO :libération éventuelle de ressources
     
     return EXIT_SUCCESS;
 }

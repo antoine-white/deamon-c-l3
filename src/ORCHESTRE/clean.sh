@@ -15,7 +15,9 @@ rm StoC1
 rm StoC2
 rm client1
 rm client2
-    
+rm pipeOrchestreToClient
+rm pipeClientToOrchestre
+
 ipcs -s 
 ipcrm -a
 ipcs -s 

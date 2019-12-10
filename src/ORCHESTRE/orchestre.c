@@ -163,16 +163,16 @@ int main(int argc, char * argv[])
     }
     unlink(fifoClient1); 
     unlink(fifoClient2); */
-    sleep(4);
     while (true)
     {
         int code = 10;
         write(services[0].pipefd[1], &code, sizeof(int)); 
         write(services[1].pipefd[1], &code, sizeof(int)); 
         write(services[2].pipefd[1], &code, sizeof(int)); 
-        close(services[0].pipefd[1]);
+        break;
+        /*close(services[0].pipefd[1]);
         close(services[1].pipefd[1]);
-        close(services[2].pipefd[1]);
+        close(services[2].pipefd[1]);*/
         // attente d'une demande de service du client
         
         // détecter la fin des traitements lancés précédemment via
