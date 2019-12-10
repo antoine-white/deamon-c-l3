@@ -19,6 +19,26 @@ static void usage(const char *exeName, const char *message)
     exit(EXIT_FAILURE);
 }
 
+
+// TEMP 
+
+
+
+void sendData(Descriptors *pipes, int *nbService)
+{
+    
+    c_writeData(pipes, &nbService, sizeof(int));
+}
+
+void receiveResults(Descriptors *pipes)
+{
+    int n;
+    c_readData(pipes, &n, sizeof(int));
+	// à faireeeeeeeeeeeeeeeeeeeeeeeeeeee
+}
+
+
+///////////
 int main(int argc, char * argv[])
 {
     if (argc < 2)
@@ -27,8 +47,22 @@ int main(int argc, char * argv[])
     int numService = strtol(argv[1], NULL, 10);
 
     // initialisations diverses
-
+    Descriptors pipes;
+    printf("Je crée le Pipe\n"); fflush(stdout); 
+    c_o_createPipes(&pipes);
+    printf("Je l'ouvre\n"); fflush(stdout); 
+    c_openPipes(&pipes);
+    printf("J'envoie le numéro de service à ouvrir \n"); fflush(stdout); 
+    sendData(&pipes,&numService);
+    printf("J'attend de recevoir les résultats \n"); fflush(stdout); 
+    sleep(10); 
+    receiveResults(&pipes);
+    printf("Résultats reçus \n"); fflush(stdout); 
+    c_closePipes(&pipes);
+    printf("Je ferme le Pipe \n"); fflush(stdout); 
+	
     // entrée en section critique pour communiquer avec l'orchestre
+    
     
     // envoi à l'orchestre du numéro du service
 
