@@ -35,6 +35,7 @@ static Service* initServices(const char* configPath, int* nb)
     // on ouvre l'API de lecture du fichier config
     config_init(configPath);
     int nbService = config_getNbServices();
+	fflush(stdout);
     Service* services = (struct Service *)malloc(sizeof(struct Service)*nbService);
     for(int i = 0; i < nbService;i++)
     {
@@ -59,6 +60,7 @@ static Service* initServices(const char* configPath, int* nb)
 //   fin d'un traitement 
 static void lauchServices(int nbService, Service* services)
 {
+	
     pid_t res;
     for(int i = 0; i < nbService;i++)
     {        
@@ -107,7 +109,7 @@ static void lauchServices(int nbService, Service* services)
             myassert(false,"erreur exec");// si le exevcp n'a pas marché
         }    
         // on ne fait rien sur le père
-    }  
+    } 
 }
 
 static void usage(const char *exeName, const char *message)
@@ -126,7 +128,7 @@ int main(int argc, char * argv[])
     // lecture du fichier de configuration
     int nbService;
     Service* services = initServices(argv[1], &nbService);
-    
+   
     // Pour la communication avec les clients
     // - création de 2 tubes nommés pour converser avec les clients  
     
@@ -136,15 +138,10 @@ int main(int argc, char * argv[])
     myassert(mkfifo(fifoClient1, 0666) != -1,"erreur creation de tube nomme");
     myassert(mkfifo(fifoClient2, 0666) != -1,"erreur creation de tube nomme"); */
     Descriptors pipes;
-         printf("Je crée le Pipe\n"); fflush(stdout); 
-   o_c_createPipes(&pipes);
-    	 printf("Je l'ouvre et attend \n"); fflush(stdout); 
-    o_openPipes(&pipes);
-    	 printf("yoooo 3\n"); fflush(stdout); 
-    o_readData(&pipes,&nbService,sizeof(int)); 
-    	 printf("yoooo 4\n"); fflush(stdout); 
-    o_closePipes(&pipes); 
-    
+         
+    o_c_createPipes(&pipes);
+    	 printf("Je crée le Pipe\n"); fflush(stdout); 
+   
     
     // - création d'un sémaphore pour que deux clients ne
     //   ne communiquent pas en même temps avec l'orchestre
@@ -170,18 +167,27 @@ int main(int argc, char * argv[])
     }
     unlink(fifoClient1); 
     unlink(fifoClient2); */
-    sleep(4);
     while (true)
     {
-        int code = 10;
+       /* int code = 10;
         write(services[0].pipefd[1], &code, sizeof(int)); 
         write(services[1].pipefd[1], &code, sizeof(int)); 
         write(services[2].pipefd[1], &code, sizeof(int)); 
         close(services[0].pipefd[1]);
         close(services[1].pipefd[1]);
-        close(services[2].pipefd[1]);
-        break; 
+        close(services[2].pipefd[1]); */
+        
         // attente d'une demande de service du client
+        
+        	// HONTEUX 
+        	 printf("Je l'ouvre et attend \n"); fflush(stdout); 
+   		 o_openPipes(&pipes);
+    	 	printf("yoooo 3\n"); fflush(stdout); 
+    	 	int demandeService; 
+    	o_readData(&pipes,&demandeService,sizeof(int)); 
+    		 printf("yoooo 4\n"); fflush(stdout); 
+  		o_closePipes(&pipes); 
+			 printf("yoooo 5\n"); fflush(stdout);
         
         // détecter la fin des traitements lancés précédemment via
         // les sémaphores dédiés (attention on n'attend pas la
@@ -203,6 +209,7 @@ int main(int argc, char * argv[])
         //     envoi du mot de passe au client (via le tube nommé)
         //     envoi des noms des tubes nommés au client (via le tube nommé)
         // attente d'un accusé de réception du client
+        break; 
     }
 
     // attente de la fin des traitements en cours (via les sémaphores)
