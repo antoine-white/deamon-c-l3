@@ -18,7 +18,7 @@
 
 
 
-static void createPipe(const char *name, OnePipe *onePipe)
+static void createPipe(const char *name, PipeClientOrchestre *onePipe)
 {
     int nameLength;
 
@@ -30,20 +30,20 @@ static void createPipe(const char *name, OnePipe *onePipe)
     int ret = mkfifo(onePipe->name, 0600);
 }
 
-void o_c_createPipes(Descriptors *pipes)
+void o_c_createPipes(DescriptorsCO *pipes)
 {
     createPipe("pipeOrchestreToClient",&(pipes->OtoC));
     createPipe("pipeClientToOrchestre",&(pipes->CtoO));
 }
 
-void c_o_createPipes(Descriptors *pipes)
+void c_o_createPipes(DescriptorsCO *pipes)
 {
     createPipe("pipeOrchestreToClient",&(pipes->OtoC));
     createPipe("pipeClientToOrchestre",&(pipes->CtoO));
 }
 
 
-static void destroyPipe(OnePipe *onePipe)
+static void destroyPipe(PipeClientOrchestre *onePipe)
 {
     int ret;
     
@@ -53,37 +53,42 @@ static void destroyPipe(OnePipe *onePipe)
     onePipe->name = NULL;
 }
 
-void o_destroyPipes(Descriptors *pipes)
+void o_destroyPipes(DescriptorsCO *pipes)
 {
     destroyPipe(&(pipes->OtoC));
     destroyPipe(&(pipes->CtoO));
 }
 
+void c_destroyPipes(DescriptorsCO *pipes)
+{
+    destroyPipe(&(pipes->OtoC));
+    destroyPipe(&(pipes->CtoO));
+}
 
 /*
  * ouverture et fermeture d'un tube
  */
  
-static void openPipe(const char *name, int flag,OnePipe *onePipe)
+static void openPipe(const char *name, int flag,PipeClientOrchestre *onePipe)
 {
     onePipe->name = strdup(name);
     onePipe->fd = open(onePipe->name, flag);
     myassert(onePipe->fd != -1, "echec open pipes ");
 }
 
-void c_openPipes(Descriptors *pipes)
+void c_openPipes(DescriptorsCO *pipes)
 {
     openPipe(pipes->CtoO.name, O_WRONLY, &(pipes->CtoO));
     openPipe(pipes->OtoC.name, O_RDONLY,&(pipes->OtoC));
 }
 
-void o_openPipes(Descriptors *pipes)
+void o_openPipes(DescriptorsCO *pipes)
 {
     openPipe(pipes->CtoO.name, O_RDONLY,&(pipes->CtoO)); 
     openPipe(pipes->OtoC.name, O_WRONLY,&(pipes->OtoC));
 }
 
-static void closePipe(OnePipe *onePipe)
+static void closePipe(PipeClientOrchestre *onePipe)
 {
     int ret;
     
@@ -94,13 +99,13 @@ static void closePipe(OnePipe *onePipe)
     onePipe->fd = -1;
 }
 
-void c_closePipes(Descriptors *pipes)
+void c_closePipes(DescriptorsCO *pipes)
 {
     closePipe(&(pipes->CtoO));
     closePipe(&(pipes->OtoC));
 }
 
-void o_closePipes(Descriptors *pipes)
+void o_closePipes(DescriptorsCO *pipes)
 {
     closePipe(&(pipes->OtoC));
     closePipe(&(pipes->CtoO));
@@ -111,36 +116,37 @@ void o_closePipes(Descriptors *pipes)
  * surcharge des envois et réceptions (pour gérer les erreurs)
  */
  
-static void writeData(OnePipe *onePipe, const void *buf, int size)
+static void writeData(PipeClientOrchestre *onePipe, const void *buf, int size)
 {
     ssize_t ret = write(onePipe->fd, buf, size);
     myassert(ret != -1,"echec écriture de données");
     myassert((size_t)ret == size,"echec écriture de données");
 }
 
-void o_writeData(Descriptors *pipes, const void *buf,int size)
+void o_writeData(DescriptorsCO *pipes, const void *buf,int size)
 {
     writeData(&(pipes->OtoC), buf, size);
 }
 
-void c_writeData(Descriptors *pipes, const void *buf, int size)
+void c_writeData(DescriptorsCO *pipes, const void *buf, int size)
 {
     writeData(&(pipes->CtoO), buf, size);
 }
 
-static void readData(OnePipe *onePipe, void *buf,int size)
+static void readData(PipeClientOrchestre *onePipe, void *buf,int size)
 {
     ssize_t ret = read(onePipe->fd, buf, size);
     myassert(ret != -1,"echec lecture de données");
     //myassert((size_t)ret == size, "echec lecture de données");
 }
 
-void o_readData(Descriptors *pipes, void *buf, int size)
+void o_readData(DescriptorsCO *pipes, void *buf, int size)
 {
     readData(&(pipes->CtoO), buf, size);
+
 }
 
-void c_readData(Descriptors *pipes, void *buf, int size)
+void c_readData(DescriptorsCO *pipes, void *buf, int size)
 {
     readData(&(pipes->OtoC), buf, size);
 }
@@ -150,7 +156,7 @@ void c_readData(Descriptors *pipes, void *buf, int size)
 * Sémaphores 
 */
 
-int sem_init(){
+int c_o_sem_init(){
 	int semClient = semget(IPC_PRIVATE,1,0666);
     myassert(semClient != -1,"erreur création de semaphore");
     semctl(semClient,0,IPC_SET,0); 
@@ -158,27 +164,27 @@ int sem_init(){
 }
 
 
-void sem_destroy(int sem){
+void c_o_sem_destroy(int sem){
 	semctl(sem,-1,IPC_RMID); 
 } 
 
 
-int sem_prendre(int sem){
+int c_o_sem_prendre(int sem){
 	struct sembuf sops[1];
     
     sops[0].sem_num = 0;       
-    sops[0].sem_op = +1;         
+    sops[0].sem_op = -1;         
     sops[0].sem_flg = 0;
 
    	 semop(sem,sops,1);
    	 return sem; 
 
 }
-int sem_vendre(int sem){
+int c_o_sem_vendre(int sem){
 	struct sembuf sops[1];
     
     sops[0].sem_num = 0;       
-    sops[0].sem_op = -1;         
+    sops[0].sem_op = +1;         
     sops[0].sem_flg = 0;
 
    	 semop(sem,sops,1);

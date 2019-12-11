@@ -137,10 +137,13 @@ int main(int argc, char * argv[])
     char* fifoClient2 = "client2"; 
     myassert(mkfifo(fifoClient1, 0666) != -1,"erreur creation de tube nomme");
     myassert(mkfifo(fifoClient2, 0666) != -1,"erreur creation de tube nomme"); */
-    Descriptors pipes;
+    DescriptorsCO pipesCO;
          
-    o_c_createPipes(&pipes);
+    o_c_createPipes(&pipesCO);
     	 printf("Je crée le Pipe\n"); fflush(stdout); 
+
+    // CREATION PIPE 
+  
    
     
     // - création d'un sémaphore pour que deux clients ne
@@ -149,7 +152,7 @@ int main(int argc, char * argv[])
     /*
     int semClient = semget(IPC_PRIVATE,1,0666);
     myassert(semClient != -1,"erreur création de semaphore");*/
-    int sem = sem_init(); 
+    int sem = c_o_sem_init(); 
     
     
     // lancement des services, avec pour chaque service :
@@ -181,12 +184,12 @@ int main(int argc, char * argv[])
         
         	// HONTEUX 
         	 printf("Je l'ouvre et attend \n"); fflush(stdout); 
-   		 o_openPipes(&pipes);
+   		 o_openPipes(&pipesCO);
     	 	printf("yoooo 3\n"); fflush(stdout); 
     	 	int demandeService; 
-    	o_readData(&pipes,&demandeService,sizeof(int)); 
+    	o_readData(&pipesCO,&demandeService,sizeof(int)); 
     		 printf("yoooo 4\n"); fflush(stdout); 
-  		o_closePipes(&pipes); 
+  		o_closePipes(&pipesCO); 
 			 printf("yoooo 5\n"); fflush(stdout);
         
         // détecter la fin des traitements lancés précédemment via

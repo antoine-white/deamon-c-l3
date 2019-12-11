@@ -32,46 +32,47 @@ typedef struct
 {
     char *name;
     int fd;
-} OnePipe;
+} PipeClientOrchestre;
 
 typedef struct {
-    OnePipe CtoO;
-    OnePipe OtoC;
-} Descriptors;
+    PipeClientOrchestre CtoO;
+    PipeClientOrchestre OtoC;
+} DescriptorsCO;
 
 /*
  * création et destruction des tubes
  */
-void o_c_createPipes(Descriptors *pipes);
-void c_o_createPipes(Descriptors *pipes);
-void o_destroyPipes(Descriptors *pipes);
+void o_c_createPipes(DescriptorsCO *pipes);
+void c_o_createPipes(DescriptorsCO *pipes);
+void o_c_destroyPipes(DescriptorsCO *pipes);
+void c_o_destroyPipes(DescriptorsCO *pipes);
 
 /*
  * ouverture et fermeture des tubes
  */
-void c_openPipes(Descriptors *pipes);
-void o_openPipes(Descriptors *pipes);
+void c_o_openPipes(DescriptorsCO *pipes);
+void o_c_openPipes(DescriptorsCO *pipes);
 
-void c_closePipes(Descriptors *pipes);
-void o_closePipes(Descriptors *pipes);
+void c_o_closePipes(DescriptorsCO *pipes);
+void o_c_closePipes(DescriptorsCO *pipes);
 
 
 /*
  * surcharge des envois et réceptions (pour gérer les erreurs)
  */
-void o_writeData(Descriptors *pipes, const void *buf, int size);
-void c_writeData(Descriptors *pipes, const void *buf,int size);
-void o_readData(Descriptors *pipes, void *buf, int size);
-void c_readData(Descriptors *pipes, void *buf, int size);
+void o_c_writeData(DescriptorsCO *pipes, const void *buf, int size);
+void c_o_writeData(DescriptorsCO *pipes, const void *buf,int size);
+void o_c_readData(DescriptorsCO *pipes, void *buf, int size);
+void c_o_readData(DescriptorsCO *pipes, void *buf, int size);
 
 /*
 * création et destruction des sémaphores 
 */
 
-int sem_init(); 
-void sem_destroy(int sem); 
-int sem_prendre(int sem); 
-int sem_vendre(int sem); 
+int c_o_sem_init(); 
+void c_o_sem_destroy(int sem); 
+int c_o_sem_prendre(int sem); 
+int c_o_sem_vendre(int sem); 
 
 
 
