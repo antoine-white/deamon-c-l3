@@ -25,16 +25,16 @@ static void createPipe(const char *name, PipeClientService *onePipe)
     int ret = mkfifo(onePipe->name, 0600);
 }
 
-void o_c_createPipes(DescriptorsCS *pipes)
+void s_c_createPipes(DescriptorsCS *pipes)
 {
-    createPipe("pipeOrchestreToClient",&(pipes->OtoC));
-    createPipe("pipeClientToOrchestre",&(pipes->CtoO));
+    createPipe("pipeServiceToClient",&(pipes->OtoC));
+    createPipe("pipeClientToService",&(pipes->CtoO));
 }
 
-void c_o_createPipes(DescriptorsCS *pipes)
+void c_s_createPipes(DescriptorsCS *pipes)
 {
-    createPipe("pipeOrchestreToClient",&(pipes->OtoC));
-    createPipe("pipeClientToOrchestre",&(pipes->CtoO));
+    createPipe("pipeServiceToClient",&(pipes->OtoC));
+    createPipe("pipeClientToService",&(pipes->CtoO));
 }
 
 
@@ -48,13 +48,13 @@ static void destroyPipe(PipeClientService *onePipe)
     onePipe->name = NULL;
 }
 
-void o_destroyPipes(DescriptorsCS *pipes)
+void s_c_destroyPipes(DescriptorsCS *pipes)
 {
     destroyPipe(&(pipes->OtoC));
     destroyPipe(&(pipes->CtoO));
 }
 
-void c_destroyPipes(DescriptorsCS *pipes)
+void c_s_destroyPipes(DescriptorsCS *pipes)
 {
     destroyPipe(&(pipes->OtoC));
     destroyPipe(&(pipes->CtoO));
@@ -71,13 +71,13 @@ static void openPipe(const char *name, int flag,PipeClientService *onePipe)
     myassert(onePipe->fd != -1, "echec open pipes ");
 }
 
-void c_openPipes(DescriptorsCS *pipes)
+void c_s_openPipes(DescriptorsCS *pipes)
 {
     openPipe(pipes->CtoO.name, O_WRONLY, &(pipes->CtoO));
     openPipe(pipes->OtoC.name, O_RDONLY,&(pipes->OtoC));
 }
 
-void o_openPipes(DescriptorsCS *pipes)
+void s_c_openPipes(DescriptorsCS *pipes)
 {
     openPipe(pipes->CtoO.name, O_RDONLY,&(pipes->CtoO)); 
     openPipe(pipes->OtoC.name, O_WRONLY,&(pipes->OtoC));
@@ -94,13 +94,13 @@ static void closePipe(PipeClientService *onePipe)
     onePipe->fd = -1;
 }
 
-void c_closePipes(DescriptorsCS *pipes)
+void c_s_closePipes(DescriptorsCS *pipes)
 {
     closePipe(&(pipes->CtoO));
     closePipe(&(pipes->OtoC));
 }
 
-void o_closePipes(DescriptorsCS *pipes)
+void s_c_closePipes(DescriptorsCS *pipes)
 {
     closePipe(&(pipes->OtoC));
     closePipe(&(pipes->CtoO));
@@ -118,12 +118,12 @@ static void writeData(PipeClientService *onePipe, const void *buf, int size)
     myassert((size_t)ret == size,"echec écriture de données");
 }
 
-void o_writeData(DescriptorsCS *pipes, const void *buf,int size)
+void s_c_writeData(DescriptorsCS *pipes, const void *buf,int size)
 {
     writeData(&(pipes->OtoC), buf, size);
 }
 
-void c_writeData(DescriptorsCS *pipes, const void *buf, int size)
+void c_s_writeData(DescriptorsCS *pipes, const void *buf, int size)
 {
     writeData(&(pipes->CtoO), buf, size);
 }
@@ -135,22 +135,22 @@ static void readData(PipeClientService *onePipe, void *buf,int size)
     //myassert((size_t)ret == size, "echec lecture de données");
 }
 
-void o_readData(DescriptorsCS *pipes, void *buf, int size)
+void s_c_readData(DescriptorsCS *pipes, void *buf, int size)
 {
     readData(&(pipes->CtoO), buf, size);
 
 }
 
-void c_readData(DescriptorsCS *pipes, void *buf, int size)
+void c_s_readData(DescriptorsCS *pipes, void *buf, int size)
 {
     readData(&(pipes->OtoC), buf, size);
 }
 
 
+ 
 
 
-
-
+/***************************************************************************/
 
 
 
