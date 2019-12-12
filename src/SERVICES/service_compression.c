@@ -43,28 +43,20 @@ void somme_service_receiveDataData(int fifoFd, Data* d)
     read(fifoFd,d->str,sizeof(char) * d->length);
 }
 
-// https://stackoverflow.com/questions/36274902/convert-int-to-string-in-standard-c
-char* integer_to_string(int x)
-{
-    char* buffer = malloc(sizeof(char) * sizeof(int) * 4 + 1);
-    if (buffer)
-    {
-         sprintf(buffer, "%d", x);
-    }
-    return buffer; // caller is expected to invoke free() on this buffer to release memory
-}
-
 // fonction de traitement des données
 void somme_service_computeResult(Data d)
 {
     int streak = 1, resPos = 0;
     char currentChar = d.str[0];
+    // pire cas; on pourrait économisé de la mémoire avec un realloc
+    // mais on aurait perdu en temps d'éxecution 
+    d.res = (char *)malloc(sizeof(char) * 2 * d.length);
     for( int i = 1 ; i < d.length ; i++)
     {
         if (currentChar == d.str[i]){
             streak++;
         } else {
-            // transform int sttreak to a char[]
+            // transform int streak to char[]
             int bufferLength = (snprintf(NULL, 0, "%d", streak)) * sizeof(char);
             char buffer[bufferLength];
             sprintf(buffer, "%d", streak);
@@ -73,6 +65,7 @@ void somme_service_computeResult(Data d)
                 d.res[resPos] = buffer[j];
                 resPos++;
             }
+            
             d.res[resPos] = currentChar;
             resPos++;
             
