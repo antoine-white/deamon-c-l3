@@ -36,12 +36,6 @@ void o_c_createPipes(DescriptorsCO *pipes)
     createPipe("pipeClientToOrchestre",&(pipes->CtoO));
 }
 
-void c_o_createPipes(DescriptorsCO *pipes)
-{
-    createPipe("pipeOrchestreToClient",&(pipes->OtoC));
-    createPipe("pipeClientToOrchestre",&(pipes->CtoO));
-}
-
 
 static void destroyPipe(PipeClientOrchestre *onePipe)
 {
@@ -53,17 +47,12 @@ static void destroyPipe(PipeClientOrchestre *onePipe)
     onePipe->name = NULL;
 }
 
-void o_destroyPipes(DescriptorsCO *pipes)
+void o_c_destroyPipes(DescriptorsCO *pipes)
 {
     destroyPipe(&(pipes->OtoC));
     destroyPipe(&(pipes->CtoO));
 }
 
-void c_destroyPipes(DescriptorsCO *pipes)
-{
-    destroyPipe(&(pipes->OtoC));
-    destroyPipe(&(pipes->CtoO));
-}
 
 /*
  * ouverture et fermeture d'un tube
@@ -78,14 +67,15 @@ static void openPipe(const char *name, int flag,PipeClientOrchestre *onePipe)
 
 void c_openPipes(DescriptorsCO *pipes)
 {
-    openPipe(pipes->CtoO.name, O_WRONLY, &(pipes->CtoO));
-    openPipe(pipes->OtoC.name, O_RDONLY,&(pipes->OtoC));
+	openPipe("pipeOrchestreToClient", O_RDONLY,&(pipes->OtoC));
+    openPipe("pipeClientToOrchestre", O_WRONLY,&(pipes->CtoO));
+    
 }
 
 void o_openPipes(DescriptorsCO *pipes)
 {
-    openPipe(pipes->CtoO.name, O_RDONLY,&(pipes->CtoO)); 
     openPipe(pipes->OtoC.name, O_WRONLY,&(pipes->OtoC));
+	openPipe(pipes->CtoO.name, O_RDONLY,&(pipes->CtoO)); 
 }
 
 static void closePipe(PipeClientOrchestre *onePipe)

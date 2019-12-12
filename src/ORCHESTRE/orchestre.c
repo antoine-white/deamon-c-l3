@@ -170,6 +170,8 @@ int main(int argc, char * argv[])
     }
     unlink(fifoClient1); 
     unlink(fifoClient2); */
+    int demandeService; 
+    int codeToClient; 
     while (true)
     {
        /* int code = 10;
@@ -183,14 +185,13 @@ int main(int argc, char * argv[])
         // attente d'une demande de service du client
         
         	// HONTEUX 
-        	 printf("Je l'ouvre et attend \n"); fflush(stdout); 
+         printf("J'ouvre le pipe avec le client et attend \n"); 
    		 o_openPipes(&pipesCO);
-    	 	printf("yoooo 3\n"); fflush(stdout); 
-    	 	int demandeService; 
-    	o_readData(&pipesCO,&demandeService,sizeof(int)); 
-    		 printf("yoooo 4\n"); fflush(stdout); 
-  		o_closePipes(&pipesCO); 
-			 printf("yoooo 5\n"); fflush(stdout);
+    	 printf("Je lis les données envoyées par le client \n");
+    	 o_readData(&pipesCO,&demandeService,sizeof(int)); 
+    	 printf("je reçois le numéro : %d\n",demandeService); 
+  	//	o_closePipes(&pipesCO); 
+			 
         
         // détecter la fin des traitements lancés précédemment via
         // les sémaphores dédiés (attention on n'attend pas la
@@ -200,6 +201,13 @@ int main(int argc, char * argv[])
         // si ordre de fin
         //     retour d'un code d'acceptation
         //     sortie de la boucle
+        if(demandeService == 0){
+        	codeToClient = 0; 
+        	o_writeData(&pipesCO, &codeToClient, sizeof(int));
+        	printf(" le numéro reçu étant 0, je m'arrete \n"); 
+        	break; 
+        }
+        
         // sinon si service non ouvert
         //     retour d'un code d'erreur
         // sinon si service déjà en cours de traitement

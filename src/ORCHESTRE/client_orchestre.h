@@ -43,9 +43,8 @@ typedef struct {
  * création et destruction des tubes
  */
 void o_c_createPipes(DescriptorsCO *pipes);
-void c_o_createPipes(DescriptorsCO *pipes);
 void o_c_destroyPipes(DescriptorsCO *pipes);
-void c_o_destroyPipes(DescriptorsCO *pipes);
+
 
 /*
  * ouverture et fermeture des tubes
