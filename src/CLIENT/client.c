@@ -47,23 +47,27 @@ int main(int argc, char * argv[])
     int numService = strtol(argv[1], NULL, 10);
 
     // initialisations diverses
-    DescriptorsCO pipes;
-   		printf("Je crée le Pipe\n"); fflush(stdout); 
-    c_o_createPipes(&pipes);
-    	printf("Je l'ouvre\n"); fflush(stdout); 
-    c_openPipes(&pipes);
-    	printf("J'envoie le numéro de service à ouvrir \n"); fflush(stdout); 
-    sendData(&pipes,&numService);
-    	printf("J'attend de recevoir les résultats \n"); fflush(stdout); 
+    DescriptorsCO pipesCO;
+    int codeRetour; 
+    	
+    printf("J'ouvre le pipe vers l'orchestre\n"); fflush(stdout);  
+    
+    	
+    c_openPipes(&pipesCO);
+    
+    printf("J'envoie le numéro de service à ouvrir -> %d\n",numService); 
+    //sendData(&pipes,&numService);
+    c_writeData(&pipesCO, &numService, sizeof(int));
+    printf("J'attend de recevoir les résultats \n");
+    
+    c_readData(&pipesCO,&codeRetour,sizeof(int)); 
+    printf("J'ai reçu le résultat : %d \n",codeRetour); 
     
     
-    
-    
-    sleep(10); 
-    receiveResults(&pipes);
+   /* receiveResults(&pipesCO);
     	printf("Résultats reçus \n"); fflush(stdout); 
-    c_closePipes(&pipes);
-    	printf("Je ferme le Pipe \n"); fflush(stdout); 
+    c_closePipes(&pipesCO);
+    	printf("Je ferme le Pipe \n"); fflush(stdout); */
 	
     // entrée en section critique pour communiquer avec l'orchestre
     
