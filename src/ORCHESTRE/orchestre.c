@@ -41,11 +41,14 @@ static Service* initServices(const char* configPath, int* nb)
     {
         //TEMP 
         const int ftokId = 456 * (i+1); 
-        services[i].isOpen = config_isServiceOpen(i+1);
+        //services[i].isOpen = config_isServiceOpen(i+1);
+        services[i].isOpen = true;
         services[i].name = malloc(sizeof(char) * strlen(config_getExeName(i+1)));
         strcpy(services[i].name,config_getExeName(i+1));
         myassert(pipe(services[i].pipefd) != -1,"erreur dans la création de tube anonyme");
-        close(services[i].pipefd[0]);
+        
+        
+        
         services[i].semKey = ftok("./",ftokId);
     }
     // on ferme l'API
@@ -143,16 +146,14 @@ int main(int argc, char * argv[])
     	 printf("Je crée le Pipe\n"); fflush(stdout); 
 
     // CREATION PIPE 
-  
-   
-    
+		
     // - création d'un sémaphore pour que deux clients ne
     //   ne communiquent pas en même temps avec l'orchestre
     
     /*
     int semClient = semget(IPC_PRIVATE,1,0666);
     myassert(semClient != -1,"erreur création de semaphore");*/
-    int sem = c_o_sem_init(); 
+    int semClient = c_o_sem_init(); 
     
     
     // lancement des services, avec pour chaque service :
@@ -160,6 +161,9 @@ int main(int argc, char * argv[])
     // - un sémaphore pour que le service préviene l'orchestre de la
     //   fin d'un traitement 
     lauchServices(nbService,services);
+    
+    for(int i = 0; i < nbService;i++)
+    	close(services[i].pipefd[0]);
     
     // TEMP :
     /*for(int i = 0; i < nbService;i++)
@@ -172,6 +176,7 @@ int main(int argc, char * argv[])
     unlink(fifoClient2); */
     int demandeService; 
     int codeToClient; 
+    int codeToService; 
     while (true)
     {
        /* int code = 10;
@@ -184,13 +189,13 @@ int main(int argc, char * argv[])
         
         // attente d'une demande de service du client
         
-        	// HONTEUX 
+        	
          printf("J'ouvre le pipe avec le client et attend \n"); 
    		 o_openPipes(&pipesCO);
     	 printf("Je lis les données envoyées par le client \n");
     	 o_readData(&pipesCO,&demandeService,sizeof(int)); 
     	 printf("je reçois le numéro : %d\n",demandeService); 
-  	//	o_closePipes(&pipesCO); 
+  	
 			 
         
         // détecter la fin des traitements lancés précédemment via
@@ -201,17 +206,40 @@ int main(int argc, char * argv[])
         // si ordre de fin
         //     retour d'un code d'acceptation
         //     sortie de la boucle
-        if(demandeService == 0){
+       if(demandeService == 0){
+        
         	codeToClient = 0; 
         	o_writeData(&pipesCO, &codeToClient, sizeof(int));
         	printf(" le numéro reçu étant 0, je m'arrete \n"); 
         	break; 
-        }
+        	
+        } else if (nbService < demandeService ){
         
-        // sinon si service non ouvert
-        //     retour d'un code d'erreur
-        // sinon si service déjà en cours de traitement
-        //     retour d'un code d'erreur
+        	printf(" le numéro reçu n'est pas compris entre 1 et 3 , je m'arrete \n"); 
+        	break;
+        	
+        } else if(services[demandeService-1].isOpen == false){ 
+        	// sinon si service non ouvert
+       		// retour d'un code d'erreur
+       		codeToClient = -1;  // Code d'erreur  
+        	o_writeData(&pipesCO, &codeToClient, sizeof(int)); // envoi du code d'erreur au client
+        	printf("le service demandé n'est pas ouvert\n"); 
+        } /* else if ( service non disponible)  {
+        	
+        	// sinon si service déjà en cours de traitement
+        	// retour d'un code d'erreur
+        
+        }*/
+        else {
+        	int code = 20; // code = 20 pour tester 
+        	codeToService = 1; 
+        	
+        	write(services[demandeService-1].pipefd[1],&codeToService,sizeof(int));
+        	// envoi d'un message indiquant au service qu'il va devoir travailler 
+      		write(services[demandeService-1].pipefd[1],&code,sizeof(int));
+      		printf("J'envoie maintenant un code au service demandé \n"); 
+        	// envoi du code au service 
+        	
         // sinon
         //     génération d'un mot de passe
         //     envoi d'un code de travail au service (via le tube anonyme)
@@ -220,8 +248,19 @@ int main(int argc, char * argv[])
         //     envoi du mot de passe au client (via le tube nommé)
         //     envoi des noms des tubes nommés au client (via le tube nommé)
         // attente d'un accusé de réception du client
+        
+        
+        
+        
+        }
+        
+        
+        
+        
+        
         break; 
     }
+    //	o_closePipes(&pipesCO); 
 
     // attente de la fin des traitements en cours (via les sémaphores)
 
