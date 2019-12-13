@@ -25,16 +25,8 @@ static void usage(const char *exeName, const char *message)
     exit(EXIT_FAILURE);
 }
 
+ /***********************************************/
 
-// TEMP 
-
-
-
-void sendData(DescriptorsCO *pipes, int *nbService)
-{
-    
-   c_writeData(pipes, &nbService, sizeof(int));
-}
 
 void receiveResults(DescriptorsCO *pipes)
 {
@@ -43,8 +35,7 @@ void receiveResults(DescriptorsCO *pipes)
 	// à faireeeeeeeeeeeeeeeeeeeeeeeeeeee
 }
 
-
-///////////
+f
 int main(int argc, char * argv[])
 {
     if (argc < 2)
@@ -56,27 +47,20 @@ int main(int argc, char * argv[])
     DescriptorsCO pipesCO;
     int codeRetour; 
     int motDePasse; 
+    int accuseReception = 1;
+    //int semClient = c_o_sem_recup(); // récuperation du sémaphore avec l'orchestre
     	
     printf("J'ouvre le pipe vers l'orchestre\n"); fflush(stdout);  
     
     	
     c_openPipes(&pipesCO);
-    
-     
-    
-    
-    
-   /* receiveResults(&pipesCO);
-    	printf("Résultats reçus \n"); fflush(stdout); 
-    c_closePipes(&pipesCO);
-    	printf("Je ferme le Pipe \n"); fflush(stdout); */
 	
     // entrée en section critique pour communiquer avec l'orchestre
     
+    //c_o_sem_prendre(semClient); // on rentre en section critique ici
     
     // envoi à l'orchestre du numéro du service
 	
-    //sendData(&pipes,&numService);
     printf("J'envoie le numéro de service à ouvrir -> %d\n",numService); 
     c_writeData(&pipesCO, &numService, sizeof(int));
     
@@ -87,7 +71,10 @@ int main(int argc, char * argv[])
     c_readData(&pipesCO,&codeRetour,sizeof(int)); 
     printf("J'ai reçu le résultat : %d \n",codeRetour); 
     if(codeRetour == 0){
-    	
+    	// si code d'erreur
+    	// afficher l'erreur
+    	// sortie de la section critique
+    	//c_o_sem_vendre(semClient);
     	printf("l'orchestre s'est arreté, je m'arrete également : %d \n",codeRetour); 
 	
     } else if ( codeRetour == -1){
@@ -95,6 +82,9 @@ int main(int argc, char * argv[])
     	printf("Le service demandé n'est pas disponible  : %d \n",codeRetour);
     	  
     } else if (codeRetour == 1){
+    	// sinon
+    	// récupération du mot de passe et des noms des 2 tubes
+    	// envoi d'un accusé de réception à l'orchestre
     	
     	printf("L'orchestre m'indique que le service est disponible\n");
     	c_readData(&pipesCO,&motDePasse,sizeof(int)); 	
@@ -114,9 +104,16 @@ int main(int argc, char * argv[])
     	myassert(CtoSfd != 1,"erreur ouverture des tubes");    	
     	printf("Ouverture des tubes nommés vers le service \n");
     	
-    	// envoie du mot de passe
+    	// envoi du mot de passe au service
     	write(CtoSfd,&motDePasse,sizeof(int));
     	
+    	// accusé de réception à l'orchestre 
+    	c_writeData(&pipesCO, &accuseReception, sizeof(int));
+    	
+    	//sortie de la section critique
+    	//c_o_sem_vendre(semClient);
+    	
+    	// on communique maintenant avec le service 
     	if(c_pwdIsOK(StoCfd)){
     		switch(numService){
     			case 1 : 
@@ -138,14 +135,10 @@ int main(int argc, char * argv[])
     		
     	}    	
     }
+    c_closePipes(&pipesCO);   // fermeture du tube
     
     
-    // si code d'erreur
-    //     afficher l'erreur
-    //     sortie de la section critique
-    // sinon
-    //     récupération du mot de passe et des noms des 2 tubes
-    //     envoi d'une accusé de réception à l'orchestre
+    
     //     sortie de la section critique
     //     envoi du mot de passe au service
     //     attente de l'accusé de réception du service
