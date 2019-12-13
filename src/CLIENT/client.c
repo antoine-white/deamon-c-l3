@@ -49,6 +49,7 @@ int main(int argc, char * argv[])
     // initialisations diverses
     DescriptorsCO pipesCO;
     int codeRetour; 
+    int motDePasse; 
     	
     printf("J'ouvre le pipe vers l'orchestre\n"); fflush(stdout);  
     
@@ -87,6 +88,13 @@ int main(int argc, char * argv[])
     
     	printf("Le service demandé n'est pas disponible  : %d \n",codeRetour);
     	  
+    } else if (codeRetour == 1){
+    	
+    	printf("L'orchestre m'indique que le service est disponible\n");
+    	c_readData(&pipesCO,&motDePasse,sizeof(int)); 	
+    	printf("Le code reçu est : %d \n",motDePasse); 
+    
+    	
     }
     
     

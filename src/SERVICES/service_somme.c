@@ -85,19 +85,21 @@ int main(int argc, char * argv[])
     close(pipefd[1]);
     
     //tube nommé entre service et client
-    int sToc = atoi(argv[3]);
+    argv[3];
     
     //tube nommé entre client et service
-    int cTos = atoi(argv[4]);
+    argv[4];
     
     const int endCode = -1;
     const int newClient = 1;
     while (true)
     {        
         // attente d'un code de l'orchestre (via tube anonyme)
+        
         int code;
-        read(pipefd[0],&code,sizeof(int));  
-        printf("code => %d \n",code);
+        read(pipefd[0],&code,sizeof(int)); 
+        printf("			JE SUIS LE SERVICE \n");  
+        printf("Je reçois un code de l'orchestre \n");
         
         // si code de fin
         //    sortie de la boucle
@@ -107,10 +109,12 @@ int main(int argc, char * argv[])
         }        
         else if(code == newClient)
         {
-            read(pipefd[0],&code,sizeof(int));  
-            printf("code => %d \n",code);
-            // réception du mot de passe de l'orchestre
-            const int password = code;
+        	int password;  
+        	// réception du mot de passe de l'orchestre
+            read(pipefd[0],&password,sizeof(int));  
+            printf("Le mot de passe envoyé par l'orchestre est => %d \n",password);
+           
+            
             //    attente du mot de passe du client
             if(getPwdFromClient(cTos) == password)
             {

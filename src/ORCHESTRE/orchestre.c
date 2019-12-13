@@ -232,12 +232,17 @@ int main(int argc, char * argv[])
         }*/
         else {
         	int code = 20; // code = 20 pour tester 
-        	codeToService = 1; 
+        	codeToService = 1; //code service pour signaler qu'il va travailler 
+        	codeToClient = 1; // code client pour signaler que c'est ok
         	
         	write(services[demandeService-1].pipefd[1],&codeToService,sizeof(int));
         	// envoi d'un message indiquant au service qu'il va devoir travailler 
       		write(services[demandeService-1].pipefd[1],&code,sizeof(int));
       		printf("J'envoie maintenant un code au service demandé \n"); 
+      		
+      		o_writeData(&pipesCO, &code, sizeof(int));
+      		printf("J'envoie maintenant le meme code au client \n"); 
+      		
         	// envoi du code au service 
         	
         // sinon
