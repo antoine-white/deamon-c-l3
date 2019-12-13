@@ -37,14 +37,14 @@ typedef struct data Data;
  *----------------------------------------------*/
  
 // fonction de réception des données
-void somme_service_receiveDataData(int fifoFd, Data* d)
+void comp_service_receiveDataData(int fifoFd, Data* d)
 {
     read(fifoFd,&(d->length),sizeof(int));
     read(fifoFd,d->str,sizeof(char) * d->length);
 }
 
 // fonction de traitement des données
-void somme_service_computeResult(Data d)
+void comp_service_computeResult(Data d)
 {
     int streak = 1, resPos = 0;
     char currentChar = d.str[0];
@@ -77,9 +77,11 @@ void somme_service_computeResult(Data d)
 }
 
 // fonction d'envoi du résultat
-void somme_service_sendResult(int fifoFd, Data d)
-{
-    write(fifoFd,&(d.res),sizeof(char) * (strlen(d.res) + 1));
+void comp_service_sendResult(int fifoFd, Data d)
+{   
+    int length = strlen(d.res);
+    write(fifoFd,&(length),sizeof(int));
+    write(fifoFd,&(d.res),sizeof(char) * (length + 1));
 }
 
 
@@ -140,15 +142,15 @@ int main(int argc, char * argv[])
             //    attente du mot de passe du client
             if(getPwdFromClient(cTos) == password)
             {
-                Data* d = NULL;
+                Data* d = malloc(sizeof(Data));
                 //envoi au client d'un code d'acceptation
                 sendOkPwd(sToc);
                 //réception des données du client (une fct par service)
-                somme_service_receiveDataData(cTos,d);
+                comp_service_receiveDataData(cTos,d);
                 //calcul du résultat (une fct par service)
-                somme_service_computeResult(*d);
+                comp_service_computeResult(*d);
                 //envoi du résultat au client (une fct par service)
-                somme_service_sendResult(sToc,*d);
+                comp_service_sendResult(sToc,*d);
                 //attente de l'accusé de réception du client
                 clientAcknowledges(cTos);// on utilise pas le résultat pour l'instant  
                 // TODO :modification du sémaphore pour prévenir l'orchestre de la fin

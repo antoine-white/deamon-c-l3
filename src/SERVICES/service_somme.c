@@ -118,7 +118,7 @@ int main(int argc, char * argv[])
             //    attente du mot de passe du client
             if(getPwdFromClient(cTos) == password)
             {
-                Data* d = NULL;
+                Data* d = malloc(sizeof(Data));
                 //envoi au client d'un code d'acceptation
                 sendOkPwd(sToc);
                 //réception des données du client (une fct par service)

@@ -23,43 +23,6 @@
  * Structures pour la paire de descripteurs
  */
   
-typedef struct
-{
-    char *name;
-    int fd;
-} PipeClientService;
-
-typedef struct {
-    PipeClientService CtoO;
-    PipeClientService OtoC;
-} DescriptorsCS;
-
-/*
- * création et destruction des tubes
- */ 
-void s_c_createPipes(DescriptorsCS *pipes);
-void c_s_createPipes(DescriptorsCS *pipes);
-void s_destroyPipes(DescriptorsCS *pipes);
-void c_destroyPipes(DescriptorsCS *pipes);
-
-/*
- * ouverture et fermeture des tubes
- */
-void c_s_openPipes(DescriptorsCS *pipes);
-void s_c_openPipes(DescriptorsCS *pipes);
-
-void c_s_closePipes(DescriptorsCS *pipes);
-void s_s_closePipes(DescriptorsCS *pipes);
-
-
-/*
- * surcharge des envois et réceptions (pour gérer les erreurs)
- */
-void s_c_writeData(DescriptorsCS *pipes, const void *buf, int size);
-void c_s_writeData(DescriptorsCS *pipes, const void *buf,int size);
-void s_c_readData(DescriptorsCS *pipes, void *buf, int size);
-void c_s_readData(DescriptorsCS *pipes, void *buf, int size); 
-
 
 
 
