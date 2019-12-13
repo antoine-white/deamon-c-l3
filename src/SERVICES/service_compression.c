@@ -1,4 +1,4 @@
-#define _XOPEN_SOURCE//to avoid warning
+#define _GNU_SOURCE  // eviter un warning 
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,6 +14,17 @@
 #include "service_orchestre.h"
 #include "client_service.h"
 
+// structure des données 
+struct data{
+    int length;
+    char *str;
+    char *res;
+};
+
+typedef struct data Data;
+
+/***********************************************/
+
 static void usage(const char *exeName, const char *message)
 {
     fprintf(stderr, "usage : %s <clé_sémaphore> <fd_tube_anonyme> "
@@ -24,13 +35,6 @@ static void usage(const char *exeName, const char *message)
     exit(EXIT_FAILURE);
 }
 
-struct data{
-    int length;
-    char *str;
-    char *res;
-};
-
-typedef struct data Data;
 
 /*----------------------------------------------*
  * fonctions appelables par le service
@@ -39,16 +43,19 @@ typedef struct data Data;
 // fonction de réception des données
 void comp_service_receiveDataData(int fifoFd, Data* d)
 {
+	// lectures des données dans les tubes
     read(fifoFd,&(d->length),sizeof(int));
     read(fifoFd,d->str,sizeof(char) * d->length);
 }
+
+/***********************************************/
 
 // fonction de traitement des données
 void comp_service_computeResult(Data d)
 {
     int streak = 1, resPos = 0;
     char currentChar = d.str[0];
-    // pire cas; on pourrait économisé de la mémoire avec un realloc
+    // pire cas; on pourrait économiser de la mémoire avec un realloc
     // mais on aurait perdu en temps d'éxecution 
     d.res = (char *)malloc(sizeof(char) * 2 * d.length);
     for( int i = 1 ; i < d.length ; i++)
@@ -56,7 +63,7 @@ void comp_service_computeResult(Data d)
         if (currentChar == d.str[i]){
             streak++;
         } else {
-            // transform int streak to char[]
+            // transforme entier streak en char[]
             int bufferLength = (snprintf(NULL, 0, "%d", streak)) * sizeof(char);
             char buffer[bufferLength];
             sprintf(buffer, "%d", streak);
@@ -76,9 +83,12 @@ void comp_service_computeResult(Data d)
     }
 }
 
+/***********************************************/
+
 // fonction d'envoi du résultat
 void comp_service_sendResult(int fifoFd, Data d)
 {   
+	// écriture du résultat dans les tubes
     int length = strlen(d.res);
     write(fifoFd,&(length),sizeof(int));
     write(fifoFd,&(d.res),sizeof(char) * (length + 1));
@@ -88,6 +98,7 @@ void comp_service_sendResult(int fifoFd, Data d)
 /*----------------------------------------------*
  * fonction main
  *----------------------------------------------*/
+
 int main(int argc, char * argv[])
 {
    /*if (argc != 5)
