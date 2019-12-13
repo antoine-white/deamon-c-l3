@@ -123,6 +123,10 @@ int main(int argc, char * argv[])
 	    			client_somme_sendData(CtoSfd,argc,argv);
 	    			client_somme_receiveResult(StoCfd,argc,argv);
 	    			break;
+	    		case 2 :
+    	    		client_compression_sendData(CtoSfd,argc,argv);    
+	    			client_compression_receiveResult(StoCfd,argc,argv);
+	    		    break;
 	    		case 3 : 
 	    			client_max_sendData(CtoSfd,argc,argv);
 	    			client_max_receiveResult(StoCfd,argc,argv);

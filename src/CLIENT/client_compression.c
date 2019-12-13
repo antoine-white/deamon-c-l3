@@ -17,13 +17,10 @@
 // Cette fonction analyse argv et en déduit les données à envoyer
 void client_compression_sendData(int fifofd, int argc, char * argv[])
 {
-    //TODO : analyse argv et en déduit les données à envoyer
-    char* str = "HELLLLLO THERE";
-    
-    int length = strlen(str);
+    int length = strlen(argv[2]);
     
     write(fifofd,&length,sizeof(int));
-    write(fifofd,str,sizeof(char) * length);
+    write(fifofd,argv[2],sizeof(char) * length);
 }
 
 // fonction de réception des résultats en provenance du service
