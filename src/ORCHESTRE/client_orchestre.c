@@ -28,6 +28,7 @@ static void createPipe(const char *name, PipeClientOrchestre *onePipe)
     onePipe->fd = -1;
     
     int ret = mkfifo(onePipe->name, 0600);
+    myassert(ret != -1, "echec create pipes ");
 }
 
  /***********************************************/ 
@@ -126,9 +127,9 @@ void o_closePipes(DescriptorsCO *pipes)
  
 static void writeData(PipeClientOrchestre *onePipe, const void *buf, int size)
 {
-    ssize_t ret = write(onePipe->fd, buf, size);
+    int ret = write(onePipe->fd, buf, size);
     myassert(ret != -1,"echec écriture de données");
-    myassert((size_t)ret == size,"echec écriture de données");
+    myassert((int)ret == size,"echec écriture de données");
 }
 
  /***********************************************/
@@ -188,6 +189,25 @@ int c_o_sem_init(){
 void c_o_sem_destroy(int sem){
 	semctl(sem,-1,IPC_RMID); 
 } 
+
+ /***********************************************/
+
+void c_o_sem_wait(int sem){
+	int tmp=0;
+	do{
+		tmp=semctl(sem,0,GETVAL);
+	}while(tmp!=1);
+	 
+}
+
+/***********************************************/
+
+/*int c_o_sem_recup(){
+	
+	int sem = semget(semClientOrchestre,1,IPC_EXCL);
+	myassert(sem != -1,"erreur semget");
+	return sem;
+}*/
 
  /***********************************************/
 

@@ -1,3 +1,5 @@
+#define _GNU_SOURCE  // eviter un warning 
+
 #include "myassert.h"
 
 #include "service_orchestre.h"
@@ -59,26 +61,6 @@ int s_o_sem_vendre(int sem){
     return sem; 
 
 }
-/*
-int lauch_service(const char *basename, int numService, const Descriptors *pipes)
-{
-    int nameLength;
-    char *name;
-    char *argv[4];
 
-    nameLength = snprintf(NULL, 0, "%s_%d", basename, numService);
-    name = malloc((nameLength + 1) * sizeof(char));
-    sprintf(name, "%s_%d", basename, numService);
-
-    argv[0] = name;
-    argv[1] = pipes->MtoW.name;
-    argv[2] = pipes->WtoM.name;
-    argv[3] = NULL;
-
-    execv(argv[0], argv);
-    myassert(false, name);
-}
-	
-*/
 
 

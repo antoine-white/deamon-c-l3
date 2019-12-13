@@ -24,24 +24,24 @@ struct Service{
     int pipefd[2]; // tubes anonymes 
     key_t semKey;
     int sem;
-    char serviceToClient[6];
-    char clientToService[6];
+    char serviceToClient[6]; // nom tube service vers client  
+    char clientToService[6]; // nom tube client vers service 
 };
 
+
 typedef struct Service Service;
+
+/***********************************************/
 
 static Service* initServices(const char* configPath, int* nb)
 {
     // on ouvre l'API de lecture du fichier config
     config_init(configPath);
     int nbService = config_getNbServices();
-	fflush(stdout);
     Service* services = (struct Service *)malloc(sizeof(struct Service)*nbService);
     for(int i = 0; i < nbService;i++)
     {
-        //TEMP 
-        const int ftokId = 456 * (i+1); 
-        //services[i].isOpen = config_isServiceOpen(i+1);
+        const int ftokId = 456 * (i+1); // clé aléatoire 
         services[i].isOpen = true;
         services[i].name = malloc(sizeof(char) * strlen(config_getExeName(i+1)));
         strcpy(services[i].name,config_getExeName(i+1));
@@ -57,6 +57,8 @@ static Service* initServices(const char* configPath, int* nb)
     *nb = nbService;
     return services;
 }
+
+/***********************************************/
 
 // lancement des services, avec pour chaque service :
 // - création d'un tube anonyme pour converser (orchestre vers service)
@@ -85,7 +87,7 @@ static void lauchServices(int nbService, Service* services)
             services[i].sem = semget(services[i].semKey,1,IPC_CREAT | IPC_EXCL | S_IRUSR |S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
             myassert(services[i].sem != -1,"erreur création de semaphore");
             
-            // transform int to string 
+            // transforme entier en chaîne de caractère  
             char buff2[12];
             sprintf(buff2, "%d %d", services[i].pipefd[0],services[i].pipefd[1]);// only the reading end of the pipe
             
@@ -113,6 +115,8 @@ static void lauchServices(int nbService, Service* services)
     } 
 }
 
+/***********************************************/
+
 static void usage(const char *exeName, const char *message)
 {
     fprintf(stderr, "usage : %s <fichier config>\n", exeName);
@@ -120,6 +124,8 @@ static void usage(const char *exeName, const char *message)
         fprintf(stderr, "message : %s\n", message);
     exit(EXIT_FAILURE);
 }
+
+/***********************************************/
 
 int main(int argc, char * argv[])
 {
@@ -143,7 +149,7 @@ int main(int argc, char * argv[])
     // - création d'un sémaphore pour que deux clients ne
     //   ne communiquent pas en même temps avec l'orchestre
     
-    int semClient = c_o_sem_init(); 
+    //int semClient = c_o_sem_init(); 
     
     
     // lancement des services : 
@@ -152,29 +158,14 @@ int main(int argc, char * argv[])
     for(int i = 0; i < nbService;i++)
     	close(services[i].pipefd[0]);
     
-    // TEMP :
-    /*for(int i = 0; i < nbService;i++)
-    {
-        semctl(services[i].sem,-1,IPC_RMID);        
-        unlink(services[i].serviceToClient); 
-        unlink(services[i].clientToService);
-    }
-    unlink(fifoClient1); 
-    unlink(fifoClient2); */
+    
     
     int demandeService;  // entier de numéro de service envoyé par le client 
     int codeToClient; // code à renvoyer au client 
     int codeToService; // code à renvoyer au service 
     while (true)
     {
-       /* int code = 10;
-        write(services[0].pipefd[1], &code, sizeof(int)); 
-        write(services[1].pipefd[1], &code, sizeof(int)); 
-        write(services[2].pipefd[1], &code, sizeof(int)); 
-        close(services[0].pipefd[1]);
-        close(services[1].pipefd[1]);
-        close(services[2].pipefd[1]); */
-        
+               
         // attente d'une demande de service du client
         
         	
@@ -222,6 +213,7 @@ int main(int argc, char * argv[])
         	int code = 20; // code = 20 pour tester 
         	codeToService = 1; //code service pour signaler qu'il va travailler 
         	codeToClient = 1; // code client pour signaler que c'est ok
+        	int Reception; 
         	
         	// envoi d'un message indiquant au service qu'il va devoir travailler 
         	write(services[demandeService-1].pipefd[1],&codeToService,sizeof(int));
@@ -245,6 +237,8 @@ int main(int argc, char * argv[])
    			o_writeData(&pipesCO, services[demandeService-1].serviceToClient, sizeof(char) * (strlen(services[demandeService-1].serviceToClient)+1));
    			o_writeData(&pipesCO, services[demandeService-1].clientToService, sizeof(char) * (strlen(services[demandeService-1].clientToService)+1));
       		printf("J'envoie maintenant les noms des tubes nommés au client \n"); 
+      		
+      		o_readData(&pipesCO,&Reception,sizeof(int)); // accusé de reception du client  
         	
         	
         // sinon
@@ -260,14 +254,13 @@ int main(int argc, char * argv[])
         
         
         }
-        
-        
-        
-        
-        
-        sleep(10); 
+        //c_o_sem_wait(semClient); 
+        o_closePipes(&pipesCO);       
+           
     }
-    //o_closePipes(&pipesCO); 
+    
+    //c_o_sem_destroy(semClient);
+    //
 
     // attente de la fin des traitements en cours (via les sémaphores)
 

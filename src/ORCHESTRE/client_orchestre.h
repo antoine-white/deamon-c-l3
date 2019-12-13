@@ -1,5 +1,6 @@
 #ifndef CLIENT_ORCHESTRE_H
 #define CLIENT_ORCHESTRE_H
+//#define semClientOrchestre 2000 // définition clé sémaphore, chiffre aléatoire
 
 // Ici toutes les communications entre l'orchestre et les clients :
 // - le sémaphore pour que 2 clients ne conversent pas en même
@@ -49,20 +50,20 @@ void o_c_destroyPipes(DescriptorsCO *pipes);
 /*
  * ouverture et fermeture des tubes
  */
-void c_o_openPipes(DescriptorsCO *pipes);
-void o_c_openPipes(DescriptorsCO *pipes);
+void c_openPipes(DescriptorsCO *pipes);
+void o_openPipes(DescriptorsCO *pipes);
 
-void c_o_closePipes(DescriptorsCO *pipes);
-void o_c_closePipes(DescriptorsCO *pipes);
+void c_closePipes(DescriptorsCO *pipes);
+void o_closePipes(DescriptorsCO *pipes);
 
 
 /*
  * surcharge des envois et réceptions (pour gérer les erreurs)
  */
-void o_c_writeData(DescriptorsCO *pipes, const void *buf, int size);
-void c_o_writeData(DescriptorsCO *pipes, const void *buf,int size);
-void o_c_readData(DescriptorsCO *pipes, void *buf, int size);
-void c_o_readData(DescriptorsCO *pipes, void *buf, int size);
+void o_writeData(DescriptorsCO *pipes, const void *buf, int size);
+void c_writeData(DescriptorsCO *pipes, const void *buf,int size);
+void o_readData(DescriptorsCO *pipes, void *buf, int size);
+void c_readData(DescriptorsCO *pipes, void *buf, int size);
 
 /*
 * création et destruction des sémaphores 
@@ -70,6 +71,8 @@ void c_o_readData(DescriptorsCO *pipes, void *buf, int size);
 
 int c_o_sem_init(); 
 void c_o_sem_destroy(int sem); 
+void c_o_sem_wait(int sem);
+int c_o_sem_recup();
 int c_o_sem_prendre(int sem); 
 int c_o_sem_vendre(int sem); 
 
