@@ -35,7 +35,7 @@ void receiveResults(DescriptorsCO *pipes)
 	// à faireeeeeeeeeeeeeeeeeeeeeeeeeeee
 }
 
-f
+
 int main(int argc, char * argv[])
 {
     if (argc < 2)
