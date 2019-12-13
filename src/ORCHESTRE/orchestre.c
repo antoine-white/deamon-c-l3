@@ -47,8 +47,9 @@ static Service* initServices(const char* configPath, int* nb)
         strcpy(services[i].name,config_getExeName(i+1));
         myassert(pipe(services[i].pipefd) != -1,"erreur dans la création de tube anonyme");
         
-        
-        
+        sprintf(services[i].serviceToClient,"StoC%d",i+1);
+        sprintf(services[i].clientToService,"CtoS%d",i+1);
+               
         services[i].semKey = ftok("./",ftokId);
     }
     // on ferme l'API
@@ -92,9 +93,6 @@ static void lauchServices(int nbService, Service* services)
             
             // - création de deux tubes nommés pour les communications entre
             //   les clients et le service   
-            
-            sprintf(services[i].serviceToClient,"StoC%d",i);
-            sprintf(services[i].clientToService,"CtoS%d",i);
             myassert(mkfifo(services[i].serviceToClient, 0666) != -1,"erreur creation de tube nomme");
             myassert(mkfifo(services[i].clientToService, 0666) != -1,"erreur creation de tube nomme"); 
             args[3] = services[i].serviceToClient;            
@@ -235,15 +233,29 @@ int main(int argc, char * argv[])
         	codeToService = 1; //code service pour signaler qu'il va travailler 
         	codeToClient = 1; // code client pour signaler que c'est ok
         	
-        	write(services[demandeService-1].pipefd[1],&codeToService,sizeof(int));
         	// envoi d'un message indiquant au service qu'il va devoir travailler 
+        	write(services[demandeService-1].pipefd[1],&codeToService,sizeof(int));
+        	
+        	
+        	// envoi du code au service 
       		write(services[demandeService-1].pipefd[1],&code,sizeof(int));
       		printf("J'envoie maintenant un code au service demandé \n"); 
       		
+      		// envoi du numéro 1 au client 
+      		o_writeData(&pipesCO, &codeToClient, sizeof(int));
+      		
+      		
+      		// envoi du code au client
       		o_writeData(&pipesCO, &code, sizeof(int));
       		printf("J'envoie maintenant le meme code au client \n"); 
       		
-        	// envoi du code au service 
+      		
+      		
+   			//envoie des noms des tubes només au client
+   			o_writeData(&pipesCO, services[demandeService-1].serviceToClient, sizeof(char) * (strlen(services[demandeService-1].serviceToClient)+1));
+   			o_writeData(&pipesCO, services[demandeService-1].clientToService, sizeof(char) * (strlen(services[demandeService-1].clientToService)+1));
+      		printf("J'envoie maintenant les noms des tubes només au client \n"); 
+        	
         	
         // sinon
         //     génération d'un mot de passe
@@ -263,7 +275,7 @@ int main(int argc, char * argv[])
         
         
         
-        break; 
+        sleep(10); 
     }
     //	o_closePipes(&pipesCO); 
 

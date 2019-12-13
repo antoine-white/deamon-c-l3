@@ -30,6 +30,9 @@ void client_max_sendData(int fifofd, int argc, char * argv[])
 // Cette fonction analyse argv pour savoir quoi faire des résultats
 void client_max_receiveResult(int fifofd, int argc, char * argv[])
 {
+	float max;
+	read(fifofd,&max,sizeof(float));
+	printf("resultat => %f",max);
     // par exemple on décide d'afficher le résultat et argv[3] contient
     // une chaine à afficher avant le résultat
 }

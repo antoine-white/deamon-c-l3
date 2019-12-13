@@ -107,10 +107,10 @@ void max_service_receiveDataData(int fifoFd, Data* d)
 
 
 // fonction de traitement des données
-void max_service_computeResult(Data d)
+void max_service_computeResult(Data* d)
 {
     pthread_t tabId[NB_THREADS];
-    ThreadData* datas = createThreadDatas(d);
+    ThreadData* datas = createThreadDatas(*d);
     // lancement des threads
     for (int i = 0; i < NB_THREADS; i++)
     {
@@ -125,7 +125,7 @@ void max_service_computeResult(Data d)
         free(datas[i].arr);
     }
     // on récupère le maximum
-    d.max = *datas[0].max;
+    d->max = *datas[0].max;
     free(datas[0].max);
     free(datas);    
 }
@@ -145,8 +145,7 @@ int main(int argc, char * argv[])
 {
     if (argc != 5)
         usage(argv[0], "nombre paramètres incorrect");
-    
-    
+
     // TEMP:
     printf("%s ; %s ;%s ;%s\n",argv[1],argv[2],argv[3],argv[4]);
     
@@ -165,21 +164,19 @@ int main(int argc, char * argv[])
         i++;
     }
     close(pipefd[1]);
+     
     
-    //tube nommé entre service et client
-    int sToc = atoi(argv[3]);
-    
-    //tube nommé entre client et service
-    int cTos = atoi(argv[4]);
-    
+      
     const int endCode = -1;
     const int newClient = 1;
     while (true)
     {        
         // attente d'un code de l'orchestre (via tube anonyme)
+        
         int code;
-        read(pipefd[0],&code,sizeof(int));  
-        printf("code => %d \n",code);
+        read(pipefd[0],&code,sizeof(int)); 
+        printf("			JE SUIS LE SERVICE \n");  
+        printf("Je reçois un code de l'orchestre \n");
         
         // si code de fin
         //    sortie de la boucle
@@ -189,31 +186,48 @@ int main(int argc, char * argv[])
         }        
         else if(code == newClient)
         {
-            read(pipefd[0],&code,sizeof(int));  
-            printf("code => %d \n",code);
-            // réception du mot de passe de l'orchestre
-            const int password = code;
+        	int password;  
+        	// réception du mot de passe de l'orchestre
+            read(pipefd[0],&password,sizeof(int));  
+            printf("Le mot de passe envoyé par l'orchestre est => %d \n",password);
+           
+            //tube nommé entre service et client
+			int StoCfd = open(argv[3], O_WRONLY); 
+			myassert(StoCfd != 1,"erreur ouverture des tubes");
+			//tube nommé entre client et service
+			int CtoSfd = open(argv[4], O_RDONLY); 
+			myassert(CtoSfd != 1,"erreur ouverture des tubes");    	
+			printf("Ouverture des tubes nommés vers le client \n");
+						
+						
             //    attente du mot de passe du client
-            if(getPwdFromClient(cTos) == password)
+			int pwdClient = s_getPwdFromClient(CtoSfd);
+			printf("mot de passe client : %d\n",pwdClient);
+            if(pwdClient == password)
             {
+	            printf("compute result \n");
                 Data* d = malloc(sizeof(Data));
                 //envoi au client d'un code d'acceptation
-                sendOkPwd(sToc);
+                s_sendOkPwd(StoCfd);
                 //réception des données du client (une fct par service)
-                max_service_receiveDataData(cTos,d);
+                max_service_receiveDataData(CtoSfd,d);
                 //calcul du résultat (une fct par service)
-                max_service_computeResult(*d);
+                max_service_computeResult(d);
+                printf("compute result \n");
                 //envoi du résultat au client (une fct par service)
-                max_service_sendResult(sToc,*d);
+                max_service_sendResult(StoCfd,*d);
                 //attente de l'accusé de réception du client
-                clientAcknowledges(cTos);// on utilise pas le résultat pour l'instant  
+                c_acknowledge(CtoSfd);// on utilise pas le résultat pour l'instant 
+				// on ferme les pipes 
+				close(StoCfd); 
+				close(CtoSfd); 
                 // TODO :modification du sémaphore pour prévenir l'orchestre de la fin
             }
             // si mot de passe incorrect
             // envoi au client d'un code d'erreur
             else 
             {
-                sendErrorPwd(sToc);
+                s_sendErrorPwd(StoCfd);
             }
             
         }

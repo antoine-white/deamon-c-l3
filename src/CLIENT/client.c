@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h> 
+#include <fcntl.h> 
+#include <sys/stat.h> 
+#include <sys/types.h> 
+#include <unistd.h> 
 
 #include "client_orchestre.h"
 #include "client_service.h"
@@ -9,6 +14,7 @@
 #include "client_compression.h"
 #include "client_max.h"
 
+#include "../UTILS/myassert.h"
 
 static void usage(const char *exeName, const char *message)
 {
@@ -93,8 +99,40 @@ int main(int argc, char * argv[])
     	printf("L'orchestre m'indique que le service est disponible\n");
     	c_readData(&pipesCO,&motDePasse,sizeof(int)); 	
     	printf("Le code reçu est : %d \n",motDePasse); 
-    
     	
+    	// on reçoit les tubes nommés
+    	char serviceToClient[6];
+    	char ClientToService[6];
+    	c_readData(&pipesCO,serviceToClient,sizeof(char) * 6); 	
+    	c_readData(&pipesCO,ClientToService,sizeof(char) * 6); 	
+    	printf("J'ai reçu les deux pipes : %s et %s \n",serviceToClient,ClientToService); 
+    	
+    	// on ouvre les tubes nommés 
+    	int StoCfd = open(serviceToClient, O_RDONLY); 
+    	myassert(StoCfd != 1,"erreur ouverture des tubes");
+    	int CtoSfd = open(ClientToService, O_WRONLY); 
+    	myassert(CtoSfd != 1,"erreur ouverture des tubes");    	
+    	printf("Ouverture des tubes nommés vers le service \n");
+    	
+    	// envoie du mot de passe
+    	write(CtoSfd,&motDePasse,sizeof(int));
+    	
+    	if(c_pwdIsOK(StoCfd)){
+    		switch(numService){
+    			case 1 : 
+	    			client_somme_sendData(CtoSfd,1,(char*)NULL);
+	    			client_somme_receiveResult(StoCfd,1,(char*)NULL);
+	    			break;
+    			case 3 : 
+	    			client_max_sendData(CtoSfd,1,(char*)NULL);
+	    			client_max_receiveResult(StoCfd,1,(char*)NULL);
+	    			break;
+    		}
+    		s_acknowledge(CtoSfd);
+    		close(StoCfd); 
+			close(CtoSfd); 
+    		
+    	}    	
     }
     
     

@@ -14,6 +14,8 @@
 #include "service_orchestre.h"
 #include "client_service.h"
 
+#include "../UTILS/myassert.h"
+
 struct data{
     float a;
     float b;
@@ -45,9 +47,9 @@ void somme_service_receiveDataData(int fifoFd, Data* d)
 }
 
 // fonction de traitement des données
-void somme_service_computeResult(Data d)
+void somme_service_computeResult(Data* d)
 {
-    d.res = d.a + d.b;
+    d->res = d->a + d->b;
 }
 
 // fonction d'envoi du résultat
@@ -83,13 +85,9 @@ int main(int argc, char * argv[])
         i++;
     }
     close(pipefd[1]);
+     
     
-    //tube nommé entre service et client
-    argv[3];
-    
-    //tube nommé entre client et service
-    argv[4];
-    
+      
     const int endCode = -1;
     const int newClient = 1;
     while (true)
@@ -114,28 +112,41 @@ int main(int argc, char * argv[])
             read(pipefd[0],&password,sizeof(int));  
             printf("Le mot de passe envoyé par l'orchestre est => %d \n",password);
            
-            
+            //tube nommé entre service et client
+			int StoCfd = open(argv[3], O_WRONLY); 
+			myassert(StoCfd != 1,"erreur ouverture des tubes");
+			//tube nommé entre client et service
+			int CtoSfd = open(argv[4], O_RDONLY); 
+			myassert(CtoSfd != 1,"erreur ouverture des tubes");    	
+			printf("Ouverture des tubes nommés vers le client \n");
+						
+						
             //    attente du mot de passe du client
-            if(getPwdFromClient(cTos) == password)
+			int pwdClient = s_getPwdFromClient(CtoSfd);
+			printf("mot de passe client : %d\n",pwdClient);
+            if(pwdClient == password)
             {
                 Data* d = malloc(sizeof(Data));
                 //envoi au client d'un code d'acceptation
-                sendOkPwd(sToc);
+                s_sendOkPwd(StoCfd);
                 //réception des données du client (une fct par service)
-                somme_service_receiveDataData(cTos,d);
+                somme_service_receiveDataData(CtoSfd,d);
                 //calcul du résultat (une fct par service)
-                somme_service_computeResult(*d);
+                somme_service_computeResult(d);
                 //envoi du résultat au client (une fct par service)
-                somme_service_sendResult(sToc,*d);
+                somme_service_sendResult(StoCfd,*d);
                 //attente de l'accusé de réception du client
-                clientAcknowledges(cTos);// on utilise pas le résultat pour l'instant  
+                c_acknowledge(CtoSfd);// on utilise pas le résultat pour l'instant 
+				// on ferme les pipes 
+				close(StoCfd); 
+				close(CtoSfd); 
                 // TODO :modification du sémaphore pour prévenir l'orchestre de la fin
             }
             // si mot de passe incorrect
             // envoi au client d'un code d'erreur
             else 
             {
-                sendErrorPwd(sToc);
+                s_sendErrorPwd(StoCfd);
             }
             
         }

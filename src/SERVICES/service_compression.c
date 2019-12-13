@@ -90,7 +90,7 @@ void comp_service_sendResult(int fifoFd, Data d)
  *----------------------------------------------*/
 int main(int argc, char * argv[])
 {
-   if (argc != 5)
+   /*if (argc != 5)
         usage(argv[0], "nombre paramètres incorrect");
 
     // TEMP:
@@ -164,7 +164,7 @@ int main(int argc, char * argv[])
             
         }
        
-    }
+    }*/
     // TODO :libération éventuelle de ressources
     
     return EXIT_SUCCESS;

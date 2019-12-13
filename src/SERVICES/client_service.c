@@ -13,32 +13,43 @@
 
 #include "client_service.h"
 
-#define OK_PWD "INCORRECT PASSWORD"
-#define WRONG_PWD "CORRECT PASSWORD"
+#define OK_PWD "CORRECT PASSWORD"
+#define WRONG_PWD "INCORRECT PASSWORD"
 #define ACKNO "RESULT OK"
 
 
- int getPwdFromClient(int fifoFd)
- {
-    int pwd;
-    read(fifoFd,&pwd,sizeof(int));
-    return pwd;
- }
+int s_getPwdFromClient(int fifoFd)
+{
+	int pwd;
+	read(fifoFd,&pwd,sizeof(int));
+	return pwd;
+}
+
+void s_sendErrorPwd(int fifoFd)
+{
+	char* errorMsg = WRONG_PWD;
+	write(fifoFd,errorMsg,strlen(errorMsg));
+}
+
+void s_sendOkPwd(int fifoFd)
+{
+	char* msg = OK_PWD;
+	write(fifoFd,msg,strlen(msg) + 1);
+}
  
- void sendErrorPwd(int fifoFd)
- {
-    char* errorMsg = WRONG_PWD;
-    write(fifoFd,errorMsg,strlen(errorMsg));
- }
+bool c_pwdIsOK(int fifoFd)
+{
+	char msg[100];// buffer large volontairement
+    read(fifoFd,&msg,sizeof(char) * 100);
+	return strstr(msg, WRONG_PWD) == NULL;
+}
  
- void sendOkPwd(int fifoFd)
- {
-    char* msg = OK_PWD;
-    write(fifoFd,msg,strlen(msg));
- }
+void s_acknowledge(int fifoFd)
+{
+	write(fifoFd,ACKNO,sizeof(char) * (strlen(ACKNO + 1)));
+}
  
- 
-bool clientAcknowledges(int fifoFd)
+bool c_acknowledge(int fifoFd)
 {
     char msg[100];// buffer large volontairement
     read(fifoFd,&msg,sizeof(char) * 100);
