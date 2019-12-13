@@ -120,12 +120,12 @@ int main(int argc, char * argv[])
     	if(c_pwdIsOK(StoCfd)){
     		switch(numService){
     			case 1 : 
-	    			client_somme_sendData(CtoSfd,1,(char*)NULL);
-	    			client_somme_receiveResult(StoCfd,1,(char*)NULL);
+	    			client_somme_sendData(CtoSfd,argc,argv);
+	    			client_somme_receiveResult(StoCfd,argc,argv);
 	    			break;
-    			case 3 : 
-	    			client_max_sendData(CtoSfd,1,(char*)NULL);
-	    			client_max_receiveResult(StoCfd,1,(char*)NULL);
+	    		case 3 : 
+	    			client_max_sendData(CtoSfd,argc,argv);
+	    			client_max_receiveResult(StoCfd,argc,argv);
 	    			break;
     		}
     		s_acknowledge(CtoSfd);

@@ -66,7 +66,7 @@ static ThreadData* createThreadDatas(Data d)
         datas[i].end = (i+1) * intervalLength -1; 
         datas[i].mux = mux; 
     }
-    datas[NB_THREADS - 1].end += d.length % NB_THREADS;
+    datas[NB_THREADS - 1].end += (d.length % NB_THREADS) - 1;
     return datas;
 }
 
@@ -77,10 +77,7 @@ void * codeThread(void * arg)
     ThreadData *data = (ThreadData *) arg;
     float max = FLT_MIN;
     
-    printf("hello start : %d %d\n",data->start,data->end);
-
     for (int i = data->start; i <= data->end; i++){
-	    printf("%d => %f\n",i,data->arr[i]);
         if(data->arr[i] > max){
             max = data->arr[i];
         }
@@ -105,47 +102,37 @@ void max_service_receiveDataData(int fifoFd, Data* d)
     read(fifoFd,&(d->length),sizeof(int));
     
     d->arr = (float*)malloc(sizeof(float) * d->length);
-    read(fifoFd,&(d->arr),sizeof(float*));
-    d->max = FLT_MIN;
-    printf("%d\n",d->length);
-    for (int i = 0 ; i < d->length ; i++)
-        printf("%d => %f\n",i,d->arr[i]);
-    printf("%d\n",d->length);
+    for (int i = 0 ; i < d->length ; i++){
+        read(fifoFd,&(d->arr[i]),sizeof(float));
+    }
 }
 
 
 // fonction de traitement des données
 void max_service_computeResult(Data* d)
 {
-    printf("compute result \n");
     pthread_t tabId[NB_THREADS];
     ThreadData* datas = createThreadDatas(*d);
     // lancement des threads
-    printf("compute result \n");
     for (int i = 0; i < NB_THREADS; i++)
     {
         int ret = pthread_create(&(tabId[i]), NULL, codeThread, &(datas[i]));
         myassert(ret == 0,"erreur dans le lancement des threads");
     }
-    printf("compute result \n");
     // attente de la fin des threads
     for (int i = 0; i < NB_THREADS; i++)
     {
 	    int ret = pthread_join(tabId[i], NULL);
         myassert(ret == 0,"erreur dans l'attente des threads");
-        free(datas[i].arr);
     }
-    printf("compute result \n");
     // on récupère le maximum
     d->max = *datas[0].max;
-    free(datas[0].max);
-    free(datas);    
 }
 
 // fonction d'envoi du résultat
 void max_service_sendResult(int fifoFd, Data d)
 {
-   write(fifoFd,&(d.max),sizeof(float));
+    write(fifoFd,&(d.max),sizeof(float));
 }
 
 
@@ -157,9 +144,6 @@ int main(int argc, char * argv[])
 {
     if (argc != 5)
         usage(argv[0], "nombre paramètres incorrect");
-
-    // TEMP:
-    printf("%s ; %s ;%s ;%s\n",argv[1],argv[2],argv[3],argv[4]);
     
     // initialisations diverses
     // la clé du séaphore 
@@ -224,7 +208,6 @@ int main(int argc, char * argv[])
                 max_service_receiveDataData(CtoSfd,d);
                 //calcul du résultat (une fct par service)
                 max_service_computeResult(d);
-                printf("compute result \n");
                 //envoi du résultat au client (une fct par service)
                 max_service_sendResult(StoCfd,*d);
                 //attente de l'accusé de réception du client

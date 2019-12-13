@@ -20,14 +20,13 @@
 void client_max_sendData(int fifofd, int argc, char * argv[])
 {
     srand(time(NULL));
-    int length = 4;
-    float* arr = (float *)malloc(sizeof(float) * length);
-    for(int i = 0; i < length ; i++)
-    {
-        arr[i] = (float)rand()/(float)(RAND_MAX/FLT_MAX);
-    }
+    int length = atoi(argv[2]);    
     write(fifofd,&length,sizeof(int));
-    write(fifofd,&arr,sizeof(float) * length);
+    float tmp;
+    for(int i = 0; i < length ; i++){
+        tmp = (float)rand()/(float)(RAND_MAX/FLT_MAX);
+        write(fifofd,&tmp,sizeof(float));
+    }
 }
 
 // fonction de réception des résultats en provenance du service
@@ -39,7 +38,5 @@ void client_max_receiveResult(int fifofd, int argc, char * argv[])
 {
 	float max;
 	read(fifofd,&max,sizeof(float));
-	printf("resultat => %f",max);
-    // par exemple on décide d'afficher le résultat et argv[3] contient
-    // une chaine à afficher avant le résultat
+	printf("resultat %s %f\n",argv[3],max);
 }

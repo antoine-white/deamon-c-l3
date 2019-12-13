@@ -17,11 +17,9 @@
 // Cette fonction analyse argv et en déduit les données à envoyer
 void client_somme_sendData(int fifofd, int argc, char * argv[])
 {
-	float f1 = 1.25, f2 = 53.20;
+	float f1 = atof(argv[2]), f2 = atof(argv[3]);
 	write(fifofd,&f1,sizeof(float));
 	write(fifofd,&f2,sizeof(float));
-    // par exemple argv[2] et argv[3] contiennent les deux nombres
-    // à envoyer (pour les sommer)
 }
 
 // fonction de réception des résultats en provenance du service
@@ -33,7 +31,5 @@ void client_somme_receiveResult(int fifofd, int argc, char * argv[])
 {
 	float res;
 	read(fifofd,&res,sizeof(float));	
-	printf("resultat => %f\n ",res);
-    // par exemple on décide d'afficher le résultat et argv[4] contient
-    // une chaine à afficher avant le résultat
+	printf("resultat %s %f\n ",argv[4],res);
 }
