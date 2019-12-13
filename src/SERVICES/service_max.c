@@ -103,9 +103,14 @@ void * codeThread(void * arg)
 void max_service_receiveDataData(int fifoFd, Data* d)
 {
     read(fifoFd,&(d->length),sizeof(int));
+    
     d->arr = (float*)malloc(sizeof(float) * d->length);
     read(fifoFd,&(d->arr),sizeof(float*));
     d->max = FLT_MIN;
+    printf("%d\n",d->length);
+    for (int i = 0 ; i < d->length ; i++)
+        printf("%d => %f\n",i,d->arr[i]);
+    printf("%d\n",d->length);
 }
 
 

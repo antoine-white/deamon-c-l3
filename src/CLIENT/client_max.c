@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <time.h>
+#include <float.h>
 
 #include "client_service.h"
 #include "client_compression.h"
@@ -17,8 +19,13 @@
 // Cette fonction analyse argv et en déduit les données à envoyer
 void client_max_sendData(int fifofd, int argc, char * argv[])
 {
+    srand(time(NULL));
     int length = 4;
-    float arr[4] = {1.2,2.5,2.3,2.3};
+    float* arr = (float *)malloc(sizeof(float) * length);
+    for(int i = 0; i < length ; i++)
+    {
+        arr[i] = (float)rand()/(float)(RAND_MAX/FLT_MAX);
+    }
     write(fifofd,&length,sizeof(int));
     write(fifofd,&arr,sizeof(float) * length);
 }
