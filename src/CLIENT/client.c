@@ -55,13 +55,8 @@ int main(int argc, char * argv[])
     	
     c_openPipes(&pipesCO);
     
-    printf("J'envoie le numéro de service à ouvrir -> %d\n",numService); 
-    //sendData(&pipes,&numService);
-    c_writeData(&pipesCO, &numService, sizeof(int));
-    printf("J'attend de recevoir les résultats \n");
+     
     
-    c_readData(&pipesCO,&codeRetour,sizeof(int)); 
-    printf("J'ai reçu le résultat : %d \n",codeRetour); 
     
     
    /* receiveResults(&pipesCO);
@@ -73,8 +68,28 @@ int main(int argc, char * argv[])
     
     
     // envoi à l'orchestre du numéro du service
-
+	
+    //sendData(&pipes,&numService);
+    printf("J'envoie le numéro de service à ouvrir -> %d\n",numService); 
+    c_writeData(&pipesCO, &numService, sizeof(int));
+    
+    printf("J'attend de recevoir les résultats \n");
+   
+    
     // attente code de retour
+    c_readData(&pipesCO,&codeRetour,sizeof(int)); 
+    printf("J'ai reçu le résultat : %d \n",codeRetour); 
+    if(codeRetour == 0){
+    	
+    	printf("l'orchestre s'est arreté, je m'arrete également : %d \n",codeRetour); 
+	
+    } else if ( codeRetour == -1){
+    
+    	printf("Le service demandé n'est pas disponible  : %d \n",codeRetour);
+    	  
+    }
+    
+    
     // si code d'erreur
     //     afficher l'erreur
     //     sortie de la section critique
