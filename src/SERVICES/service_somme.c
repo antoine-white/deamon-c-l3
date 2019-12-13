@@ -1,4 +1,4 @@
-#define _XOPEN_SOURCE//to avoid warning
+#define _GNU_SOURCE  // eviter un warning 
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +16,7 @@
 
 #include "../UTILS/myassert.h"
 
+// structure des données 
 struct data{
     float a;
     float b;
@@ -23,6 +24,8 @@ struct data{
 };
 
 typedef struct data Data;
+
+/***********************************************/
 
 static void usage(const char *exeName, const char *message)
 {
@@ -42,19 +45,26 @@ static void usage(const char *exeName, const char *message)
 // fonction de réception des données
 void somme_service_receiveDataData(int fifoFd, Data* d)
 {
+	// lectures des données dans les tubes 
     read(fifoFd,&(d->a),sizeof(float));
     read(fifoFd,&(d->b),sizeof(float));
 }
 
+/***********************************************/
+
 // fonction de traitement des données
 void somme_service_computeResult(Data* d)
 {
+	// somme des données 
     d->res = d->a + d->b;
 }
+
+/***********************************************/
 
 // fonction d'envoi du résultat
 void somme_service_sendResult(int fifoFd, Data d)
 {
+	// écriture du résultat dans le tube 
     write(fifoFd,&(d.res),sizeof(float));
 }
 
@@ -62,14 +72,13 @@ void somme_service_sendResult(int fifoFd, Data d)
 /*----------------------------------------------*
  * fonction main
  *----------------------------------------------*/
+ 
 int main(int argc, char * argv[])
 {
     if (argc != 5)
         usage(argv[0], "nombre paramètres incorrect");
 
-    // TEMP:
-    printf("%s ; %s ;%s ;%s\n",argv[1],argv[2],argv[3],argv[4]);
-    
+        
     // initialisations diverses
     // la clé du séaphore 
     key_t semKey = (key_t) atoi(argv[1]);
@@ -94,7 +103,7 @@ int main(int argc, char * argv[])
     {        
         // attente d'un code de l'orchestre (via tube anonyme)
         
-        int code;
+        int code; // code qui va indiquer au service de travailler 
         read(pipefd[0],&code,sizeof(int)); 
         printf("			JE SUIS LE SERVICE \n");  
         printf("Je reçois un code de l'orchestre \n");

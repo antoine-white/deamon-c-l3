@@ -52,7 +52,8 @@ typedef struct
 } ThreadData;
 
 
-// création de données pour les threads
+/***********************************************/
+
 static ThreadData* createThreadDatas(Data d)
 {
     pthread_mutex_t mux = PTHREAD_MUTEX_INITIALIZER;
@@ -69,6 +70,8 @@ static ThreadData* createThreadDatas(Data d)
     datas[NB_THREADS - 1].end += (d.length % NB_THREADS) - 1;
     return datas;
 }
+
+/***********************************************/
 
 // Fonction support d'un thread
 // Tous les threads lanceront cette fonction
@@ -94,7 +97,7 @@ void * codeThread(void * arg)
     return NULL;
 }
 
-/*********************************/
+/***********************************************/
 
 // fonction de réception des données
 void max_service_receiveDataData(int fifoFd, Data* d)
@@ -108,7 +111,8 @@ void max_service_receiveDataData(int fifoFd, Data* d)
 }
 
 
-// fonction de traitement des données
+/***********************************************/
+
 void max_service_computeResult(Data* d)
 {
     pthread_t tabId[NB_THREADS];
@@ -161,8 +165,6 @@ int main(int argc, char * argv[])
     }
     close(pipefd[1]);
      
-    
-      
     const int endCode = -1;
     const int newClient = 1;
     while (true)
