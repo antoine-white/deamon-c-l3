@@ -17,11 +17,11 @@
 #include "service_orchestre.h"
 
 
-
+ // Structure d'un service 
 struct Service{
-    char* name;
-    bool isOpen;
-    int pipefd[2];
+    char* name;  // nom du service 
+    bool isOpen; // boolean pour vérifier s'il est ouvert 
+    int pipefd[2]; // tubes anonymes 
     key_t semKey;
     int sem;
     char serviceToClient[6];
@@ -132,32 +132,21 @@ int main(int argc, char * argv[])
    
     // Pour la communication avec les clients
     // - création de 2 tubes nommés pour converser avec les clients  
-    
-    /*
-    char* fifoClient1 = "client1"; 
-    char* fifoClient2 = "client2"; 
-    myassert(mkfifo(fifoClient1, 0666) != -1,"erreur creation de tube nomme");
-    myassert(mkfifo(fifoClient2, 0666) != -1,"erreur creation de tube nomme"); */
+
     DescriptorsCO pipesCO;
          
-    o_c_createPipes(&pipesCO);
-    	 printf("Je crée le Pipe\n"); fflush(stdout); 
+    o_c_createPipes(&pipesCO); // CREATION PIPE 
+    printf("Je crée le Pipe\n"); fflush(stdout); 
 
-    // CREATION PIPE 
+    
 		
     // - création d'un sémaphore pour que deux clients ne
     //   ne communiquent pas en même temps avec l'orchestre
     
-    /*
-    int semClient = semget(IPC_PRIVATE,1,0666);
-    myassert(semClient != -1,"erreur création de semaphore");*/
     int semClient = c_o_sem_init(); 
     
     
-    // lancement des services, avec pour chaque service :
-    // - création d'un tube anonyme pour converser (orchestre vers service)
-    // - un sémaphore pour que le service préviene l'orchestre de la
-    //   fin d'un traitement 
+    // lancement des services : 
     lauchServices(nbService,services);
     
     for(int i = 0; i < nbService;i++)
@@ -172,9 +161,10 @@ int main(int argc, char * argv[])
     }
     unlink(fifoClient1); 
     unlink(fifoClient2); */
-    int demandeService; 
-    int codeToClient; 
-    int codeToService; 
+    
+    int demandeService;  // entier de numéro de service envoyé par le client 
+    int codeToClient; // code à renvoyer au client 
+    int codeToService; // code à renvoyer au service 
     while (true)
     {
        /* int code = 10;
@@ -189,9 +179,9 @@ int main(int argc, char * argv[])
         
         	
          printf("J'ouvre le pipe avec le client et attend \n"); 
-   		 o_openPipes(&pipesCO);
+   		 o_openPipes(&pipesCO); // ouverture du piper avec le client 
     	 printf("Je lis les données envoyées par le client \n");
-    	 o_readData(&pipesCO,&demandeService,sizeof(int)); 
+    	 o_readData(&pipesCO,&demandeService,sizeof(int));  // lecture du numéro envoyé par le client
     	 printf("je reçois le numéro : %d\n",demandeService); 
   	
 			 
@@ -204,14 +194,14 @@ int main(int argc, char * argv[])
         // si ordre de fin
         //     retour d'un code d'acceptation
         //     sortie de la boucle
-       if(demandeService == 0){
+       if(demandeService == 0){  // si entier reçu est 0, ordre de fin 
         
         	codeToClient = 0; 
-        	o_writeData(&pipesCO, &codeToClient, sizeof(int));
+        	o_writeData(&pipesCO, &codeToClient, sizeof(int)); // on renvoie 0 au client pour lui faire savoir que l'orchestre s'est arreté 
         	printf(" le numéro reçu étant 0, je m'arrete \n"); 
         	break; 
         	
-        } else if (nbService < demandeService ){
+        } else if (nbService < demandeService ){ // si la demande n'est pas compris entre 0 et 3
         
         	printf(" le numéro reçu n'est pas compris entre 1 et 3 , je m'arrete \n"); 
         	break;
@@ -228,7 +218,7 @@ int main(int argc, char * argv[])
         	// retour d'un code d'erreur
         
         }*/
-        else {
+        else { // dernier cas si le service demandé est disponible
         	int code = 20; // code = 20 pour tester 
         	codeToService = 1; //code service pour signaler qu'il va travailler 
         	codeToClient = 1; // code client pour signaler que c'est ok
@@ -251,10 +241,10 @@ int main(int argc, char * argv[])
       		
       		
       		
-   			//envoie des noms des tubes només au client
+   			//envoie des noms des tubes nommés au client
    			o_writeData(&pipesCO, services[demandeService-1].serviceToClient, sizeof(char) * (strlen(services[demandeService-1].serviceToClient)+1));
    			o_writeData(&pipesCO, services[demandeService-1].clientToService, sizeof(char) * (strlen(services[demandeService-1].clientToService)+1));
-      		printf("J'envoie maintenant les noms des tubes només au client \n"); 
+      		printf("J'envoie maintenant les noms des tubes nommés au client \n"); 
         	
         	
         // sinon
@@ -277,7 +267,7 @@ int main(int argc, char * argv[])
         
         sleep(10); 
     }
-    //	o_closePipes(&pipesCO); 
+    //o_closePipes(&pipesCO); 
 
     // attente de la fin des traitements en cours (via les sémaphores)
 

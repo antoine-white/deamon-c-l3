@@ -76,13 +76,16 @@ void * codeThread(void * arg)
 {
     ThreadData *data = (ThreadData *) arg;
     float max = FLT_MIN;
+    
+    printf("hello start : %d %d\n",data->start,data->end);
 
     for (int i = data->start; i <= data->end; i++){
+	    printf("%d => %f\n",i,data->arr[i]);
         if(data->arr[i] > max){
             max = data->arr[i];
         }
     }
-        
+            
     // utilisation d'un mutex pour éviter que deux
     // threads écrivent en même temps
     pthread_mutex_lock(&(data->mux));
@@ -109,21 +112,25 @@ void max_service_receiveDataData(int fifoFd, Data* d)
 // fonction de traitement des données
 void max_service_computeResult(Data* d)
 {
+    printf("compute result \n");
     pthread_t tabId[NB_THREADS];
     ThreadData* datas = createThreadDatas(*d);
     // lancement des threads
+    printf("compute result \n");
     for (int i = 0; i < NB_THREADS; i++)
     {
         int ret = pthread_create(&(tabId[i]), NULL, codeThread, &(datas[i]));
         myassert(ret == 0,"erreur dans le lancement des threads");
     }
+    printf("compute result \n");
     // attente de la fin des threads
     for (int i = 0; i < NB_THREADS; i++)
     {
-        int ret = pthread_join(tabId[i], NULL);
+	    int ret = pthread_join(tabId[i], NULL);
         myassert(ret == 0,"erreur dans l'attente des threads");
         free(datas[i].arr);
     }
+    printf("compute result \n");
     // on récupère le maximum
     d->max = *datas[0].max;
     free(datas[0].max);
@@ -205,7 +212,6 @@ int main(int argc, char * argv[])
 			printf("mot de passe client : %d\n",pwdClient);
             if(pwdClient == password)
             {
-	            printf("compute result \n");
                 Data* d = malloc(sizeof(Data));
                 //envoi au client d'un code d'acceptation
                 s_sendOkPwd(StoCfd);
